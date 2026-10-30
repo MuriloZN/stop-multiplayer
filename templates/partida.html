@@ -38,23 +38,48 @@
                 </div>
             </div>
 
-            <h2>Suas respostas</h2>
+            <section id="area-respostas">
 
-            <form id="form-respostas">
+                <h2>Suas respostas</h2>
 
-                <div id="campos-respostas">
-                    <!-- Os campos serão criados pelo JavaScript -->
-                </div>
+                <form id="form-respostas">
+                    <div id="campos-respostas"></div>
 
-                <button
-                    type="button"
-                    id="btn-stop"
-                    disabled
-                >
-                    STOP!
-                </button>
+                    <button
+                        type="button"
+                        id="btn-stop"
+                        disabled
+                    >
+                        STOP!
+                    </button>
+                </form>
 
-            </form>
+            </section>
+
+            <section id="area-votacao" hidden>
+
+                <h2>Revisão das respostas</h2>
+
+                <p>
+                    Analise as respostas dos jogadores. Você pode votar
+                    para invalidar aquelas que estiverem incorretas.
+                </p>
+
+                <p id="cronometro-votacao">
+                    Tempo para votar: 15 segundos
+                </p>
+
+                <div id="lista-respostas-votacao"></div>
+
+            </section>
+
+            <section id="area-resultado" hidden>
+
+                <h2>Resultado da rodada</h2>
+
+                <div id="resultado-respostas"></div>
+
+            </section>
 
             <p id="mensagem-partida" class="room-message"></p>
 
