@@ -428,7 +428,37 @@ def iniciar_rodada(codigo):
         },
         to=codigo
     )
+# ==========================================
+# RECUPERAR ESTADO DA PARTIDA
+# ==========================================
 
+@socketio.on("carregar_partida")
+def carregar_partida(dados):
+    codigo, sala, jogador_id = obter_jogador(dados)
+
+    if not sala:
+        emit("erro", {"mensagem": "Não foi possível recuperar sua partida."})
+        return
+
+    if sala["estado"] != "em_andamento":
+        emit("erro", {"mensagem": "A partida ainda não começou."})
+        return
+
+    tempo_restante = max(
+        0,
+        int(sala["fim_rodada"] - time.time())
+    )
+
+    emit(
+        "estado_partida",
+        {
+            "letra": sala["letra_atual"],
+            "rodada": sala["rodada_atual"],
+            "total_rodadas": sala["configuracoes"]["rodadas"],
+            "tempo": tempo_restante,
+            "temas": sala["temas"]
+        }
+    )
 
 # ==========================================
 # INICIAR PARTIDA
