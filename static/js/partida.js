@@ -233,12 +233,26 @@ socket.on("rodada_iniciada", (dados) => {
     mostrarRodada(dados);
 });
 
-socket.on("rodada_encerrada", (dados) => {
-    encerrarLocalmente(
-        dados.motivo === "stop"
-            ? "STOP! A rodada foi encerrada por um jogador."
-            : "O tempo acabou! Rodada encerrada."
-    );
+});
+
+socket.on("partida_finalizada", (dados) => {
+    clearInterval(intervalo);
+    rodadaEncerrada = true;
+    bloquearCampos();
+
+    letraAtual.textContent = "🏆";
+    mostrarMensagem("PARTIDA FINALIZADA!");
+
+    ranking.innerHTML = "";
+
+    dados.ranking.forEach((jogador, indice) => {
+        const item = document.createElement("div");
+        item.className = "player-item";
+        item.textContent =
+            `${indice + 1}º - ${jogador.nome}: ${jogador.pontos} pontos`;
+
+        ranking.appendChild(item);
+    });
 });
 
 socket.on("erro", (dados) => {
