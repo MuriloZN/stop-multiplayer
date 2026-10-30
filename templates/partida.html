@@ -1,0 +1,79 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Partida - STOP!</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+    <main class="container">
+
+        <header class="header">
+            <h1 class="logo">STOP!</h1>
+            <p>Boa sorte! Seja rápido!</p>
+        </header>
+
+        <section class="lobby-card">
+
+            <div class="game-info">
+                <div>
+                    <span>Rodada</span>
+                    <strong id="rodada-atual">1</strong>
+                </div>
+
+                <div>
+                    <span>Letra sorteada</span>
+                    <strong id="letra-atual">?</strong>
+                </div>
+
+                <div>
+                    <span>Tempo restante</span>
+                    <strong id="cronometro">00:00</strong>
+                </div>
+            </div>
+
+            <h2>Suas respostas</h2>
+
+            <form id="form-respostas">
+
+                <div id="campos-respostas">
+                    <!-- Os campos serão criados pelo JavaScript -->
+                </div>
+
+                <button
+                    type="button"
+                    id="btn-stop"
+                    disabled
+                >
+                    STOP!
+                </button>
+
+            </form>
+
+            <p id="mensagem-partida" class="room-message"></p>
+
+        </section>
+
+        <section class="lobby-card">
+
+            <h2>Ranking da partida</h2>
+
+            <div id="ranking-jogadores">
+                Aguardando pontuação...
+            </div>
+
+        </section>
+
+    </main>
+
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+    <script src="{{ url_for('static', filename='js/partida.js') }}"></script>
+
+</body>
+</html>
