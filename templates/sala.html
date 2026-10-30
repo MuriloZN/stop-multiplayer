@@ -1,0 +1,97 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Sala de espera | STOP!</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+</head>
+
+<body>
+
+    <main class="container">
+
+        <header class="header">
+            <div class="logo">ST<span>O</span>P!</div>
+
+            <div class="status">
+                <span class="status-dot"></span>
+                SALA ONLINE
+            </div>
+        </header>
+
+        <section class="hero">
+            <div class="tag">SALA DE ESPERA</div>
+
+            <h1>
+                Prepare-se para<br>
+                <span>o desafio!</span>
+            </h1>
+
+            <p>
+                Convide seus amigos e aguarde todos entrarem
+                para começar a partida.
+            </p>
+        </section>
+
+        <section class="card lobby-card">
+
+            <div class="room-header">
+                <div>
+                    <span class="room-label">CÓDIGO DA SALA</span>
+
+                    <h2 id="codigo-sala">{{ codigo }}</h2>
+                </div>
+
+                <button id="btn-copiar" class="btn-secondary">
+                    COPIAR CÓDIGO
+                </button>
+            </div>
+
+            <div class="lobby-divider"></div>
+
+            <div class="players-header">
+                <h2>Jogadores</h2>
+
+                <span id="contador-jogadores" class="player-count">
+                    0 jogadores
+                </span>
+            </div>
+
+            <div id="lista-jogadores" class="players-list">
+                <p class="empty-message">
+                    Carregando jogadores...
+                </p>
+            </div>
+
+            <div class="waiting-message">
+                <span class="status-dot"></span>
+                Aguardando jogadores...
+            </div>
+
+            <button id="btn-iniciar" class="btn-primary" disabled>
+                INICIAR PARTIDA
+            </button>
+
+            <p id="mensagem-sala" class="room-message"></p>
+
+        </section>
+
+        <footer>
+            <p>STOP! MULTIPLAYER © 2026</p>
+            <p>Boa sorte a todos!</p>
+        </footer>
+
+    </main>
+
+    <script src="{{ url_for('static', filename='js/sala.js') }}"></script>
+
+</body>
+</html>
