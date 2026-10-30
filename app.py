@@ -87,6 +87,18 @@ def obter_jogador(dados):
         return None, None, None
 
     return codigo, sala, token
+    
+def normalizar_resposta(texto):
+    texto = texto.strip().casefold()
+
+    texto = unicodedata.normalize("NFD", texto)
+    texto = "".join(
+        caractere
+        for caractere in texto
+        if unicodedata.category(caractere) != "Mn"
+    )
+
+    return texto
 
 @socketio.on("atualizar_respostas")
 def atualizar_respostas(dados):
@@ -472,6 +484,7 @@ def iniciar_rodada(codigo):
         numero_rodada
     )
 
+
 def finalizar_rodada(codigo, motivo):
     sala = salas.get(codigo)
 
@@ -487,6 +500,88 @@ def finalizar_rodada(codigo, motivo):
     sala["rodada_encerrada"] = True
     sala["fim_rodada"] = None
 
+    letra = normalizar_resposta(sala["letra_atual"])
+
+    respostas_por_tema = {
+        tema: [] for tema in sala["temas"]
+    }
+
+    # ORGANIZAR AS RESPOSTAS POR TEMA
+
+    for jogador_id, respostas in sala["respostas"].items():
+        for tema in sala["temas"]:
+            resposta = respostas.get(tema, "")
+
+            if resposta:
+                respostas_por_tema[tema].append({
+                    "jogador_id": jogador_id,
+                    "resposta": resposta
+                })
+
+    # CALCULAR A PONTUAÇÃO
+
+    pontuacao_rodada = {
+        jogador_id: 0
+        for jogador_id in sala["jogadores"]
+    }
+
+    for tema, respostas in respostas_por_tema.items():
+        respostas_validas = []
+
+        for item in respostas:
+            resposta = item["resposta"]
+            resposta_normalizada = normalizar_resposta(resposta)
+
+            if resposta_normalizada.startswith(letra):
+                respostas_validas.append({
+                    "jogador_id": item["jogador_id"],
+                    "resposta": resposta,
+                    "normalizada": resposta_normalizada
+                })
+
+        contagem = {}
+
+        for item in respostas_validas:
+            chave = item["normalizada"]
+            contagem[chave] = contagem.get(chave, 0) + 1
+
+        for item in respostas_validas:
+            jogador_id = item["jogador_id"]
+            chave = item["normalizada"]
+
+            if contagem[chave] == 1:
+                pontuacao_rodada[jogador_id] += 10
+            else:
+                pontuacao_rodada[jogador_id] += 5
+
+    # SOMAR AOS PONTOS DA PARTIDA
+
+    for jogador_id, pontos in pontuacao_rodada.items():
+        sala["jogadores"][jogador_id]["pontos"] += pontos
+
+    ranking = sorted(
+        [
+            {
+                "nome": jogador["nome"],
+                "pontos": jogador["pontos"]
+            }
+            for jogador in sala["jogadores"].values()
+        ],
+        key=lambda jogador: jogador["pontos"],
+        reverse=True
+    )
+
+    socketio.emit(
+        "resultado_rodada",
+        {
+            "motivo": motivo,
+            "rodada": sala["rodada_atual"],
+            "pontuacao": pontuacao_rodada,
+            "ranking": ranking
+        },
+        to=codigo
+    )
+
     socketio.emit(
         "rodada_encerrada",
         {
@@ -496,6 +591,50 @@ def finalizar_rodada(codigo, motivo):
         to=codigo
     )
 
+    socketio.start_background_task(
+        avancar_partida,
+        codigo,
+        sala["rodada_atual"]
+    )
+
+def avancar_partida(codigo, numero_rodada):
+    socketio.sleep(5)
+
+    sala = salas.get(codigo)
+
+    if not sala:
+        return
+
+    if sala["estado"] != "em_andamento":
+        return
+
+    if sala["rodada_atual"] != numero_rodada:
+        return
+
+    if numero_rodada >= sala["configuracoes"]["rodadas"]:
+        sala["estado"] = "finalizada"
+
+        ranking = sorted(
+            [
+                {
+                    "nome": jogador["nome"],
+                    "pontos": jogador["pontos"]
+                }
+                for jogador in sala["jogadores"].values()
+            ],
+            key=lambda jogador: jogador["pontos"],
+            reverse=True
+        )
+
+        socketio.emit(
+            "partida_finalizada",
+            {"ranking": ranking},
+            to=codigo
+        )
+
+        return
+
+    iniciar_rodada(codigo)
 
 def controlar_tempo_rodada(codigo, numero_rodada):
     while True:
@@ -551,7 +690,17 @@ def parar_rodada(dados):
         emit("erro", {"mensagem": "Você já enviou suas respostas."})
         return
 
-    sala["respostas"][jogador_id] = respostas
+    respostas_por_tema = {}
+
+for indice, tema in enumerate(sala["temas"]):
+    resposta = respostas.get(f"resposta-{indice}", "")
+
+    if isinstance(resposta, str):
+        respostas_por_tema[tema] = resposta.strip()[:100]
+    else:
+        respostas_por_tema[tema] = ""
+
+sala["respostas"][jogador_id] = respostas_por_tema
 
     finalizar_rodada(codigo, "stop")
 
