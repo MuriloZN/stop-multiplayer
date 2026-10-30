@@ -2,12 +2,16 @@
 import os
 import secrets
 import string
+import random
+import time
 
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO, join_room, emit
 
 
-# CONFIGURAÇÃO
+# ==========================================
+# CONFIGURAÇÃO DO SERVIDOR
+# ==========================================
 
 app = Flask(__name__)
 
@@ -21,7 +25,9 @@ socketio = SocketIO(app)
 salas = {}
 
 
+# ==========================================
 # PÁGINAS
+# ==========================================
 
 @app.route("/")
 def index():
@@ -36,7 +42,17 @@ def pagina_sala(codigo):
     return render_template("sala.html", codigo=codigo)
 
 
+@app.route("/partida/<codigo>")
+def pagina_partida(codigo):
+    if codigo not in salas:
+        return "Partida não encontrada.", 404
+
+    return render_template("partida.html", codigo=codigo)
+
+
+# ==========================================
 # FUNÇÕES AUXILIARES
+# ==========================================
 
 def gerar_codigo():
     caracteres = string.ascii_uppercase + string.digits
@@ -50,39 +66,10 @@ def gerar_codigo():
             return codigo
 
 
-def listar_jogadores(codigo):
-    sala = salas[codigo]
-
-    return [
-        {
-            "nome": jogador["nome"],
-            "pontos": jogador["pontos"],
-            "conectado": jogador["sid"] is not None
-        }
-        for jogador in sala["jogadores"].values()
-    ]
-
-
-def atualizar_jogadores(codigo):
-    if codigo in salas:
-        socketio.emit(
-            "atualizar_jogadores",
-            {"jogadores": listar_jogadores(codigo)},
-            to=codigo
-        )
-
-
-def enviar_estado_sala(codigo):
-    sala = salas[codigo]
-
-    socketio.emit(
-        "estado_sala",
-        {
-            "temas": sala["temas"],
-            "configuracoes": sala["configuracoes"],
-            "anfitriao": sala["anfitriao"]
-        },
-        to=codigo
+def validar_nome(nome):
+    return (
+        isinstance(nome, str)
+        and 0 < len(nome.strip()) <= 20
     )
 
 
@@ -101,14 +88,47 @@ def obter_jogador(dados):
     return codigo, sala, token
 
 
-def validar_nome(nome):
-    return (
-        isinstance(nome, str)
-        and 0 < len(nome.strip()) <= 20
+def listar_jogadores(codigo):
+    sala = salas[codigo]
+
+    return [
+        {
+            "nome": jogador["nome"],
+            "pontos": jogador["pontos"],
+            "conectado": jogador["sid"] is not None
+        }
+        for jogador in sala["jogadores"].values()
+    ]
+
+
+def atualizar_jogadores(codigo):
+    if codigo not in salas:
+        return
+
+    socketio.emit(
+        "atualizar_jogadores",
+        {"jogadores": listar_jogadores(codigo)},
+        to=codigo
     )
 
 
+def enviar_estado_sala(codigo):
+    sala = salas[codigo]
+
+    socketio.emit(
+        "estado_sala",
+        {
+            "temas": sala["temas"],
+            "configuracoes": sala["configuracoes"],
+            "anfitriao": sala["anfitriao"]
+        },
+        to=codigo
+    )
+
+
+# ==========================================
 # CRIAR SALA
+# ==========================================
 
 @socketio.on("criar_sala")
 def criar_sala(dados):
@@ -119,7 +139,10 @@ def criar_sala(dados):
     nome = dados.get("nome", "").strip()
 
     if not validar_nome(nome):
-        emit("erro", {"mensagem": "O nome deve ter entre 1 e 20 caracteres."})
+        emit(
+            "erro",
+            {"mensagem": "O nome deve ter entre 1 e 20 caracteres."}
+        )
         return
 
     codigo = gerar_codigo()
@@ -127,6 +150,7 @@ def criar_sala(dados):
 
     salas[codigo] = {
         "anfitriao": jogador_id,
+
         "jogadores": {
             jogador_id: {
                 "nome": nome,
@@ -134,30 +158,43 @@ def criar_sala(dados):
                 "sid": request.sid
             }
         },
+
         "estado": "aguardando",
+
         "configuracoes": {
             "tempo": 60,
             "rodadas": 10
         },
+
         "temas": [],
+
         "letras_disponiveis": list(string.ascii_uppercase),
+
         "rodada_atual": 0,
+        "letra_atual": None,
+
         "respostas": {},
         "votos": {},
+
         "fim_rodada": None
     }
 
     join_room(codigo)
 
-    emit("sala_criada", {
-        "codigo": codigo,
-        "token": jogador_id,
-        "jogadores": listar_jogadores(codigo),
-        "anfitriao": True
-    })
+    emit(
+        "sala_criada",
+        {
+            "codigo": codigo,
+            "token": jogador_id,
+            "jogadores": listar_jogadores(codigo),
+            "anfitriao": True
+        }
+    )
 
 
+# ==========================================
 # ENTRAR EM UMA SALA
+# ==========================================
 
 @socketio.on("entrar_sala")
 def entrar_sala(dados):
@@ -179,7 +216,10 @@ def entrar_sala(dados):
         return
 
     if not validar_nome(nome):
-        emit("erro", {"mensagem": "O nome deve ter entre 1 e 20 caracteres."})
+        emit(
+            "erro",
+            {"mensagem": "O nome deve ter entre 1 e 20 caracteres."}
+        )
         return
 
     jogador_id = secrets.token_urlsafe(24)
@@ -192,48 +232,61 @@ def entrar_sala(dados):
 
     join_room(codigo)
 
-    emit("entrou_sala", {
-        "codigo": codigo,
-        "token": jogador_id,
-        "anfitriao": False
-    })
+    emit(
+        "entrou_sala",
+        {
+            "codigo": codigo,
+            "token": jogador_id,
+            "anfitriao": False
+        }
+    )
 
     atualizar_jogadores(codigo)
     enviar_estado_sala(codigo)
 
 
+# ==========================================
 # RECONECTAR JOGADOR
+# ==========================================
 
 @socketio.on("reconectar_sala")
 def reconectar_sala(dados):
     codigo, sala, jogador_id = obter_jogador(dados)
 
     if not sala:
-        emit("erro", {"mensagem": "Não foi possível recuperar sua vaga."})
+        emit(
+            "erro",
+            {"mensagem": "Não foi possível recuperar sua vaga."}
+        )
         return
 
     sala["jogadores"][jogador_id]["sid"] = request.sid
 
     join_room(codigo)
 
-    emit("sala_reconectada", {
-        "codigo": codigo,
-        "anfitriao": jogador_id == sala["anfitriao"],
-        "jogadores": listar_jogadores(codigo)
-    })
+    emit(
+        "sala_reconectada",
+        {
+            "codigo": codigo,
+            "anfitriao": jogador_id == sala["anfitriao"],
+            "jogadores": listar_jogadores(codigo)
+        }
+    )
 
     enviar_estado_sala(codigo)
     atualizar_jogadores(codigo)
 
 
+# ==========================================
 # ADICIONAR TEMA
+# ==========================================
 
 @socketio.on("adicionar_tema")
 def adicionar_tema(dados):
     codigo, sala, jogador_id = obter_jogador(dados)
 
     if not sala:
-        emit("erro", {"mensagem": "Sua conexão com a sala não foi reconhecida."})
+        emit("erro", {"mensagem": "Conexão com a sala não reconhecida."})
         return
 
     if sala["estado"] != "aguardando":
@@ -249,7 +302,10 @@ def adicionar_tema(dados):
     tema = tema.strip()
 
     if not tema or len(tema) > 30:
-        emit("erro", {"mensagem": "O tema deve ter entre 1 e 30 caracteres."})
+        emit(
+            "erro",
+            {"mensagem": "O tema deve ter entre 1 e 30 caracteres."}
+        )
         return
 
     if len(sala["temas"]) >= 10:
@@ -265,18 +321,23 @@ def adicionar_tema(dados):
     enviar_estado_sala(codigo)
 
 
+# ==========================================
 # REMOVER TEMA
+# ==========================================
 
 @socketio.on("remover_tema")
 def remover_tema(dados):
     codigo, sala, jogador_id = obter_jogador(dados)
 
     if not sala:
-        emit("erro", {"mensagem": "Sua conexão com a sala não foi reconhecida."})
+        emit("erro", {"mensagem": "Conexão com a sala não reconhecida."})
         return
 
     if jogador_id != sala["anfitriao"]:
-        emit("erro", {"mensagem": "Somente o anfitrião pode remover temas."})
+        emit(
+            "erro",
+            {"mensagem": "Somente o anfitrião pode remover temas."}
+        )
         return
 
     indice = dados.get("indice")
@@ -289,18 +350,23 @@ def remover_tema(dados):
         enviar_estado_sala(codigo)
 
 
+# ==========================================
 # ALTERAR CONFIGURAÇÕES
+# ==========================================
 
 @socketio.on("alterar_configuracoes")
 def alterar_configuracoes(dados):
     codigo, sala, jogador_id = obter_jogador(dados)
 
     if not sala:
-        emit("erro", {"mensagem": "Sua conexão com a sala não foi reconhecida."})
+        emit("erro", {"mensagem": "Conexão com a sala não reconhecida."})
         return
 
     if jogador_id != sala["anfitriao"]:
-        emit("erro", {"mensagem": "Somente o anfitrião pode alterar as configurações."})
+        emit(
+            "erro",
+            {"mensagem": "Somente o anfitrião pode alterar configurações."}
+        )
         return
 
     if sala["estado"] != "aguardando":
@@ -327,18 +393,63 @@ def alterar_configuracoes(dados):
     enviar_estado_sala(codigo)
 
 
+# ==========================================
+# INICIAR RODADA
+# ==========================================
+
+def iniciar_rodada(codigo):
+    sala = salas[codigo]
+
+    if not sala["letras_disponiveis"]:
+        sala["letras_disponiveis"] = list(string.ascii_uppercase)
+
+    letra = random.choice(sala["letras_disponiveis"])
+
+    sala["letras_disponiveis"].remove(letra)
+
+    sala["rodada_atual"] += 1
+    sala["letra_atual"] = letra
+
+    sala["respostas"] = {}
+    sala["votos"] = {}
+
+    sala["fim_rodada"] = (
+        time.time() + sala["configuracoes"]["tempo"]
+    )
+
+    socketio.emit(
+        "rodada_iniciada",
+        {
+            "letra": letra,
+            "rodada": sala["rodada_atual"],
+            "total_rodadas": sala["configuracoes"]["rodadas"],
+            "tempo": sala["configuracoes"]["tempo"],
+            "temas": sala["temas"]
+        },
+        to=codigo
+    )
+
+
+# ==========================================
 # INICIAR PARTIDA
+# ==========================================
 
 @socketio.on("iniciar_partida")
 def iniciar_partida(dados):
     codigo, sala, jogador_id = obter_jogador(dados)
 
     if not sala:
-        emit("erro", {"mensagem": "Sua conexão com a sala não foi reconhecida."})
+        emit(
+            "erro",
+            {"mensagem": "Conexão com a sala não reconhecida."}
+        )
         return
 
     if jogador_id != sala["anfitriao"]:
-        emit("erro", {"mensagem": "Somente o anfitrião pode iniciar a partida."})
+        emit(
+            "erro",
+            {"mensagem": "Somente o anfitrião pode iniciar a partida."}
+        )
         return
 
     if sala["estado"] != "aguardando":
@@ -346,22 +457,23 @@ def iniciar_partida(dados):
         return
 
     if not sala["temas"]:
-        emit("erro", {"mensagem": "Adicione pelo menos um tema antes de iniciar."})
+        emit(
+            "erro",
+            {"mensagem": "Adicione pelo menos um tema antes de iniciar."}
+        )
         return
 
-    sala["estado"] = "configurada"
+    sala["estado"] = "em_andamento"
 
-    socketio.emit(
-        "partida_pronta",
-        {
-            "temas": sala["temas"],
-            "configuracoes": sala["configuracoes"]
-        },
-        to=codigo
-    )
+    for jogador in sala["jogadores"].values():
+        jogador["pontos"] = 0
+
+    iniciar_rodada(codigo)
 
 
+# ==========================================
 # DESCONECTAR JOGADOR
+# ==========================================
 
 @socketio.on("disconnect")
 def desconectar():
@@ -369,13 +481,16 @@ def desconectar():
 
     for codigo, sala in list(salas.items()):
         for jogador in sala["jogadores"].values():
+
             if jogador["sid"] == jogador_sid:
                 jogador["sid"] = None
                 atualizar_jogadores(codigo)
                 return
 
 
+# ==========================================
 # EXECUTAR SERVIDOR
+# ==========================================
 
 if __name__ == "__main__":
     socketio.run(
@@ -384,4 +499,3 @@ if __name__ == "__main__":
         port=int(os.environ.get("PORT", 5000)),
         debug=True
     )
-
