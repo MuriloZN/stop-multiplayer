@@ -62,7 +62,20 @@ function criarCampos(temas) {
         input.placeholder = "Digite sua resposta...";
         input.autocomplete = "off";
 
-        input.addEventListener("input", atualizarBotaoStop);
+        input.addEventListener("input", () => {
+            atualizarBotaoStop();
+
+            const respostas = {};
+
+            camposRespostas.querySelectorAll("input").forEach(campo => {
+                respostas[campo.id] = campo.value.trim();
+            });
+
+            socket.emit(
+                "atualizar_respostas",
+                enviarDados({ respostas })
+            );
+        });
 
         grupo.appendChild(label);
         grupo.appendChild(input);
