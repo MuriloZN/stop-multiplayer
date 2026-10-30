@@ -1,7 +1,9 @@
 
 const socket = io();
 
+// ==========================================
 // DADOS DO JOGADOR
+// ==========================================
 
 const codigo = sessionStorage.getItem("codigoSala");
 const token = sessionStorage.getItem("tokenJogador");
@@ -10,22 +12,38 @@ const letraAtual = document.getElementById("letra-atual");
 const rodadaAtual = document.getElementById("rodada-atual");
 const cronometro = document.getElementById("cronometro");
 
+const areaRespostas = document.getElementById("area-respostas");
 const camposRespostas = document.getElementById("campos-respostas");
 const botaoStop = document.getElementById("btn-stop");
-const mensagem = document.getElementById("mensagem-partida");
 
+const areaVotacao = document.getElementById("area-votacao");
+const cronometroVotacao = document.getElementById("cronometro-votacao");
+const listaRespostasVotacao = document.getElementById("lista-respostas-votacao");
+
+const areaResultado = document.getElementById("area-resultado");
+const resultadoRespostas = document.getElementById("resultado-respostas");
+
+const mensagem = document.getElementById("mensagem-partida");
 const ranking = document.getElementById("ranking-jogadores");
 
-let tempoRestante = 0;
 let intervalo = null;
+let intervaloVotacao = null;
+
+let tempoRestante = 0;
 let rodadaEncerrada = false;
+let faseAtual = "aguardando";
+
+let respostasVotacao = {};
+let respostasVotadas = new Set();
 
 if (!codigo || !token) {
     window.location.href = "/";
 }
 
 
+// ==========================================
 // FUNÇÕES AUXILIARES
+// ==========================================
 
 function enviarDados(dados = {}) {
     return {
@@ -40,8 +58,26 @@ function mostrarMensagem(texto, erro = false) {
     mensagem.style.color = erro ? "#f87171" : "#a78bfa";
 }
 
+function limparIntervalos() {
+    clearInterval(intervalo);
+    clearInterval(intervaloVotacao);
+}
 
+function formatarTempo(tempo) {
+    const minutos = Math.floor(tempo / 60);
+    const segundos = tempo % 60;
+
+    return (
+        String(minutos).padStart(2, "0") +
+        ":" +
+        String(segundos).padStart(2, "0")
+    );
+}
+
+
+// ==========================================
 // CRIAR CAMPOS DE RESPOSTA
+// ==========================================
 
 function criarCampos(temas) {
     camposRespostas.innerHTML = "";
@@ -55,6 +91,7 @@ function criarCampos(temas) {
         label.htmlFor = "resposta-" + indice;
 
         const input = document.createElement("input");
+
         input.type = "text";
         input.id = "resposta-" + indice;
         input.name = "resposta-" + indice;
@@ -87,7 +124,9 @@ function criarCampos(temas) {
 }
 
 
+// ==========================================
 // VERIFICAR RESPOSTAS PREENCHIDAS
+// ==========================================
 
 function atualizarBotaoStop() {
     const campos = camposRespostas.querySelectorAll("input");
@@ -103,42 +142,41 @@ function atualizarBotaoStop() {
 }
 
 
-// CRONÔMETRO
+// ==========================================
+// CRONÔMETRO DA RODADA
+// ==========================================
 
 function iniciarCronometro(tempo) {
     clearInterval(intervalo);
 
     tempoRestante = tempo;
-    atualizarCronometro();
+
+    cronometro.textContent = formatarTempo(tempoRestante);
 
     if (tempoRestante <= 0) {
-        encerrarLocalmente("Tempo encerrado! Aguardando o servidor...");
+        encerrarLocalmente(
+            "Tempo encerrado! Aguardando o servidor..."
+        );
         return;
     }
 
     intervalo = setInterval(() => {
         tempoRestante--;
 
-        atualizarCronometro();
+        cronometro.textContent = formatarTempo(tempoRestante);
 
         if (tempoRestante <= 0) {
-            encerrarLocalmente("Tempo encerrado! Aguardando resultado...");
+            encerrarLocalmente(
+                "Tempo encerrado! Aguardando resultado..."
+            );
         }
     }, 1000);
 }
 
-function atualizarCronometro() {
-    const minutos = Math.floor(tempoRestante / 60);
-    const segundos = tempoRestante % 60;
 
-    cronometro.textContent =
-        String(minutos).padStart(2, "0") +
-        ":" +
-        String(segundos).padStart(2, "0");
-}
-
-
+// ==========================================
 // BLOQUEAR CAMPOS
+// ==========================================
 
 function bloquearCampos() {
     camposRespostas.querySelectorAll("input").forEach(campo => {
@@ -149,10 +187,19 @@ function bloquearCampos() {
 }
 
 
+// ==========================================
 // MOSTRAR RODADA
+// ==========================================
 
 function mostrarRodada(dados) {
+    limparIntervalos();
+
+    faseAtual = "respondendo";
     rodadaEncerrada = false;
+
+    areaRespostas.hidden = false;
+    areaVotacao.hidden = true;
+    areaResultado.hidden = true;
 
     letraAtual.textContent = dados.letra;
 
@@ -161,15 +208,15 @@ function mostrarRodada(dados) {
 
     criarCampos(dados.temas);
 
-    botaoStop.disabled = true;
-
     mostrarMensagem("Preencha todas as categorias!");
 
     iniciarCronometro(dados.tempo);
 }
 
 
+// ==========================================
 // ENCERRAR LOCALMENTE
+// ==========================================
 
 function encerrarLocalmente(texto) {
     rodadaEncerrada = true;
@@ -182,14 +229,20 @@ function encerrarLocalmente(texto) {
 }
 
 
+// ==========================================
 // BOTÃO STOP
+// ==========================================
 
 botaoStop.addEventListener("click", () => {
-    if (rodadaEncerrada) return;
+    if (rodadaEncerrada || faseAtual !== "respondendo") {
+        return;
+    }
 
     atualizarBotaoStop();
 
-    if (botaoStop.disabled) return;
+    if (botaoStop.disabled) {
+        return;
+    }
 
     const respostas = {};
 
@@ -212,7 +265,208 @@ botaoStop.addEventListener("click", () => {
 });
 
 
-// CONEXÃO COM O SERVIDOR
+// ==========================================
+// MOSTRAR FASE DE VOTAÇÃO
+// ==========================================
+
+function mostrarVotacao(dados) {
+    limparIntervalos();
+
+    faseAtual = "votacao";
+    rodadaEncerrada = true;
+
+    areaRespostas.hidden = true;
+    areaVotacao.hidden = false;
+    areaResultado.hidden = true;
+
+    letraAtual.textContent = dados.letra;
+
+    respostasVotacao = {};
+    respostasVotadas.clear();
+
+    listaRespostasVotacao.innerHTML = "";
+
+    dados.respostas.forEach(item => {
+        respostasVotacao[item.id] = item;
+
+        const card = document.createElement("div");
+        card.className = "campo-resposta";
+
+        const titulo = document.createElement("strong");
+        titulo.textContent = item.tema;
+
+        const jogador = document.createElement("p");
+        jogador.textContent = "Jogador: " + item.jogador;
+
+        const resposta = document.createElement("p");
+        resposta.textContent = "Resposta: " + item.resposta;
+
+        const votos = document.createElement("p");
+        votos.id = "votos-" + item.id;
+        votos.textContent =
+            `${item.votos} / ${dados.votos_necessarios} votos para invalidar`;
+
+        const botao = document.createElement("button");
+        botao.type = "button";
+        botao.className = "btn-secondary";
+        botao.textContent = "Votar para invalidar";
+
+        botao.addEventListener("click", () => {
+            if (respostasVotadas.has(item.id)) {
+                return;
+            }
+
+            respostasVotadas.add(item.id);
+            botao.disabled = true;
+            botao.textContent = "Voto enviado";
+
+            socket.emit(
+                "votar_resposta",
+                enviarDados({
+                    resposta_id: item.id
+                })
+            );
+        });
+
+        if (!item.valida_letra) {
+            const aviso = document.createElement("p");
+            aviso.textContent =
+                "Esta resposta não começa com a letra sorteada.";
+            aviso.style.color = "#f87171";
+
+            card.appendChild(aviso);
+        }
+
+        card.appendChild(titulo);
+        card.appendChild(jogador);
+        card.appendChild(resposta);
+        card.appendChild(votos);
+        card.appendChild(botao);
+
+        listaRespostasVotacao.appendChild(card);
+    });
+
+    mostrarMensagem("Vote nas respostas que considerar incorretas.");
+
+    iniciarCronometroVotacao(dados.tempo);
+}
+
+
+// ==========================================
+// CRONÔMETRO DA VOTAÇÃO
+// ==========================================
+
+function iniciarCronometroVotacao(tempo) {
+    clearInterval(intervaloVotacao);
+
+    let restante = tempo;
+
+    cronometroVotacao.textContent =
+        "Tempo para votar: " + restante + " segundos";
+
+    intervaloVotacao = setInterval(() => {
+        restante--;
+
+        cronometroVotacao.textContent =
+            "Tempo para votar: " + Math.max(0, restante) + " segundos";
+
+        if (restante <= 0) {
+            clearInterval(intervaloVotacao);
+        }
+    }, 1000);
+}
+
+
+// ==========================================
+// ATUALIZAR VOTOS NA TELA
+// ==========================================
+
+socket.on("votacao_atualizada", dados => {
+    const contador = document.getElementById(
+        "votos-" + dados.resposta_id
+    );
+
+    if (contador) {
+        contador.textContent =
+            `${dados.votos} / ${dados.votos_necessarios} votos para invalidar`;
+    }
+});
+
+
+// ==========================================
+// MOSTRAR RESULTADO DA RODADA
+// ==========================================
+
+socket.on("resultado_rodada", dados => {
+    limparIntervalos();
+
+    faseAtual = "resultado";
+
+    areaRespostas.hidden = true;
+    areaVotacao.hidden = true;
+    areaResultado.hidden = false;
+
+    resultadoRespostas.innerHTML = "";
+
+    dados.respostas.forEach(item => {
+        const card = document.createElement("div");
+        card.className = "campo-resposta";
+
+        const titulo = document.createElement("strong");
+        titulo.textContent = item.tema;
+
+        const texto = document.createElement("p");
+        texto.textContent =
+            `${item.jogador}: ${item.resposta}`;
+
+        const situacao = document.createElement("p");
+
+        if (item.invalidada) {
+            situacao.textContent = "Resposta invalidada pela votação.";
+            situacao.style.color = "#f87171";
+        } else if (!item.valida_letra) {
+            situacao.textContent = "Resposta não começa com a letra sorteada.";
+            situacao.style.color = "#f87171";
+        } else {
+            situacao.textContent = "Resposta válida.";
+            situacao.style.color = "#a78bfa";
+        }
+
+        card.appendChild(titulo);
+        card.appendChild(texto);
+        card.appendChild(situacao);
+
+        resultadoRespostas.appendChild(card);
+    });
+
+    mostrarMensagem("Pontuação da rodada calculada!");
+
+    atualizarRanking(dados.ranking);
+});
+
+
+// ==========================================
+// ATUALIZAR RANKING
+// ==========================================
+
+function atualizarRanking(jogadores) {
+    ranking.innerHTML = "";
+
+    jogadores.forEach((jogador, indice) => {
+        const item = document.createElement("div");
+        item.className = "player-item";
+
+        item.textContent =
+            `${indice + 1}º - ${jogador.nome}: ${jogador.pontos} pontos`;
+
+        ranking.appendChild(item);
+    });
+}
+
+
+// ==========================================
+// EVENTOS DO SERVIDOR
+// ==========================================
 
 socket.on("connect", () => {
     socket.emit(
@@ -221,41 +475,61 @@ socket.on("connect", () => {
     );
 });
 
-socket.on("estado_partida", (dados) => {
-    mostrarRodada(dados);
-
-    if (dados.tempo <= 0) {
-        encerrarLocalmente("Rodada encerrada! Aguardando resultado...");
+socket.on("estado_partida", dados => {
+    if (dados.fase === "resultado") {
+        faseAtual = "resultado";
+        areaRespostas.hidden = true;
+        areaVotacao.hidden = true;
+        areaResultado.hidden = false;
+        mostrarMensagem("Aguardando a próxima rodada...");
+        return;
     }
-});
 
-socket.on("rodada_iniciada", (dados) => {
     mostrarRodada(dados);
 });
 
+socket.on("rodada_iniciada", dados => {
+    mostrarRodada(dados);
 });
 
-socket.on("partida_finalizada", (dados) => {
-    clearInterval(intervalo);
+socket.on("rodada_encerrada", () => {
+    encerrarLocalmente("Rodada encerrada! Preparando votação...");
+});
+
+socket.on("fase_votacao", dados => {
+    mostrarVotacao(dados);
+});
+
+socket.on("tempo_votacao", dados => {
+    cronometroVotacao.textContent =
+        "Tempo para votar: " + dados.tempo + " segundos";
+});
+
+socket.on("votacao_encerrada", () => {
+    clearInterval(intervaloVotacao);
+    mostrarMensagem("Votação encerrada! Calculando pontuação...");
+});
+
+socket.on("partida_finalizada", dados => {
+    limparIntervalos();
+
+    faseAtual = "finalizada";
     rodadaEncerrada = true;
+
     bloquearCampos();
 
+    areaRespostas.hidden = true;
+    areaVotacao.hidden = true;
+    areaResultado.hidden = true;
+
     letraAtual.textContent = "🏆";
+
     mostrarMensagem("PARTIDA FINALIZADA!");
 
-    ranking.innerHTML = "";
-
-    dados.ranking.forEach((jogador, indice) => {
-        const item = document.createElement("div");
-        item.className = "player-item";
-        item.textContent =
-            `${indice + 1}º - ${jogador.nome}: ${jogador.pontos} pontos`;
-
-        ranking.appendChild(item);
-    });
+    atualizarRanking(dados.ranking);
 });
 
-socket.on("erro", (dados) => {
+socket.on("erro", dados => {
     mostrarMensagem(dados.mensagem, true);
 });
 
