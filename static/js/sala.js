@@ -268,8 +268,12 @@ socket.on("partida_pronta", (dados) => {
     botaoIniciar.disabled = true;
 
     mostrarMensagem(
-        "Configurações confirmadas! A próxima etapa será iniciar o jogo."
+        "Configurações confirmadas! Preparando a partida..."
     );
+});
+
+socket.on("rodada_iniciada", () => {
+    window.location.href = "/partida/" + codigo;
 });
 
 socket.on("erro", (dados) => {
