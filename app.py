@@ -4,6 +4,7 @@ import secrets
 import string
 import random
 import time
+import unicodedata
 
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO, join_room, emit
@@ -86,6 +87,38 @@ def obter_jogador(dados):
         return None, None, None
 
     return codigo, sala, token
+
+@socketio.on("atualizar_respostas")
+def atualizar_respostas(dados):
+    codigo, sala, jogador_id = obter_jogador(dados)
+
+    if not sala:
+        emit("erro", {"mensagem": "Jogador ou sala não reconhecidos."})
+        return
+
+    if sala["estado"] != "em_andamento" or sala["rodada_encerrada"]:
+        return
+
+    if time.time() >= sala["fim_rodada"]:
+        finalizar_rodada(codigo, "tempo")
+        return
+
+    respostas = dados.get("respostas")
+
+    if not isinstance(respostas, dict):
+        return
+
+    respostas_validas = {}
+
+    for indice, tema in enumerate(sala["temas"]):
+        valor = respostas.get(f"resposta-{indice}", "")
+
+        if isinstance(valor, str):
+            respostas_validas[tema] = valor.strip()[:100]
+        else:
+            respostas_validas[tema] = ""
+
+    sala["respostas"][jogador_id] = respostas_validas
 
 
 def listar_jogadores(codigo):
