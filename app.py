@@ -176,7 +176,8 @@ def criar_sala(dados):
         "respostas": {},
         "votos": {},
 
-        "fim_rodada": None
+        "fim_rodada": None,
+        "rodada_encerrada": False
     }
 
     join_room(codigo)
@@ -397,6 +398,7 @@ def alterar_configuracoes(dados):
 # INICIAR RODADA
 # ==========================================
 
+
 def iniciar_rodada(codigo):
     sala = salas[codigo]
 
@@ -404,7 +406,6 @@ def iniciar_rodada(codigo):
         sala["letras_disponiveis"] = list(string.ascii_uppercase)
 
     letra = random.choice(sala["letras_disponiveis"])
-
     sala["letras_disponiveis"].remove(letra)
 
     sala["rodada_atual"] += 1
@@ -412,22 +413,115 @@ def iniciar_rodada(codigo):
 
     sala["respostas"] = {}
     sala["votos"] = {}
+    sala["rodada_encerrada"] = False
 
     sala["fim_rodada"] = (
         time.time() + sala["configuracoes"]["tempo"]
     )
 
+    numero_rodada = sala["rodada_atual"]
+
     socketio.emit(
         "rodada_iniciada",
         {
             "letra": letra,
-            "rodada": sala["rodada_atual"],
+            "rodada": numero_rodada,
             "total_rodadas": sala["configuracoes"]["rodadas"],
             "tempo": sala["configuracoes"]["tempo"],
             "temas": sala["temas"]
         },
         to=codigo
     )
+
+    socketio.start_background_task(
+        controlar_tempo_rodada,
+        codigo,
+        numero_rodada
+    )
+
+def finalizar_rodada(codigo, motivo):
+    sala = salas.get(codigo)
+
+    if not sala:
+        return
+
+    if sala["estado"] != "em_andamento":
+        return
+
+    if sala["rodada_encerrada"]:
+        return
+
+    sala["rodada_encerrada"] = True
+    sala["fim_rodada"] = None
+
+    socketio.emit(
+        "rodada_encerrada",
+        {
+            "motivo": motivo,
+            "rodada": sala["rodada_atual"]
+        },
+        to=codigo
+    )
+
+
+def controlar_tempo_rodada(codigo, numero_rodada):
+    while True:
+        sala = salas.get(codigo)
+
+        if not sala:
+            return
+
+        if sala["estado"] != "em_andamento":
+            return
+
+        if sala["rodada_atual"] != numero_rodada:
+            return
+
+        if sala["rodada_encerrada"]:
+            return
+
+        restante = sala["fim_rodada"] - time.time()
+
+        if restante <= 0:
+            finalizar_rodada(codigo, "tempo")
+            return
+
+        socketio.sleep(min(1, restante))
+
+@socketio.on("parar_rodada")
+def parar_rodada(dados):
+    codigo, sala, jogador_id = obter_jogador(dados)
+
+    if not sala:
+        emit("erro", {"mensagem": "Jogador ou sala não reconhecidos."})
+        return
+
+    if sala["estado"] != "em_andamento":
+        emit("erro", {"mensagem": "Não existe uma rodada em andamento."})
+        return
+
+    if sala["rodada_encerrada"]:
+        emit("erro", {"mensagem": "Esta rodada já foi encerrada."})
+        return
+
+    if time.time() >= sala["fim_rodada"]:
+        finalizar_rodada(codigo, "tempo")
+        return
+
+    respostas = dados.get("respostas")
+
+    if not isinstance(respostas, dict):
+        emit("erro", {"mensagem": "Respostas inválidas."})
+        return
+
+    if jogador_id in sala["respostas"]:
+        emit("erro", {"mensagem": "Você já enviou suas respostas."})
+        return
+
+    sala["respostas"][jogador_id] = respostas
+
+    finalizar_rodada(codigo, "stop")
+
 # ==========================================
 # RECUPERAR ESTADO DA PARTIDA
 # ==========================================
@@ -444,9 +538,12 @@ def carregar_partida(dados):
         emit("erro", {"mensagem": "A partida ainda não começou."})
         return
 
-    tempo_restante = max(
-        0,
-        int(sala["fim_rodada"] - time.time())
+    tempo_restante = 0
+
+    if not sala["rodada_encerrada"] and sala["fim_rodada"]:
+        tempo_restante = max(
+            0,
+            int(sala["fim_rodada"] - time.time())
     )
 
     emit(
