@@ -74,7 +74,7 @@ function criarCampos(temas) {
 }
 
 
-// VERIFICAR SE TODAS AS RESPOSTAS FORAM PREENCHIDAS
+// VERIFICAR RESPOSTAS PREENCHIDAS
 
 function atualizarBotaoStop() {
     const campos = camposRespostas.querySelectorAll("input");
@@ -99,7 +99,7 @@ function iniciarCronometro(tempo) {
     atualizarCronometro();
 
     if (tempoRestante <= 0) {
-        encerrarLocalmente();
+        encerrarLocalmente("Tempo encerrado! Aguardando o servidor...");
         return;
     }
 
@@ -109,7 +109,7 @@ function iniciarCronometro(tempo) {
         atualizarCronometro();
 
         if (tempoRestante <= 0) {
-            encerrarLocalmente();
+            encerrarLocalmente("Tempo encerrado! Aguardando resultado...");
         }
     }, 1000);
 }
@@ -122,6 +122,17 @@ function atualizarCronometro() {
         String(minutos).padStart(2, "0") +
         ":" +
         String(segundos).padStart(2, "0");
+}
+
+
+// BLOQUEAR CAMPOS
+
+function bloquearCampos() {
+    camposRespostas.querySelectorAll("input").forEach(campo => {
+        campo.disabled = true;
+    });
+
+    botaoStop.disabled = true;
 }
 
 
@@ -147,18 +158,14 @@ function mostrarRodada(dados) {
 
 // ENCERRAR LOCALMENTE
 
-function encerrarLocalmente() {
+function encerrarLocalmente(texto) {
     rodadaEncerrada = true;
 
     clearInterval(intervalo);
 
-    botaoStop.disabled = true;
+    bloquearCampos();
 
-    camposRespostas.querySelectorAll("input").forEach(campo => {
-        campo.disabled = true;
-    });
-
-    mostrarMensagem("Tempo encerrado! Aguardando resultado...");
+    mostrarMensagem(texto);
 }
 
 
@@ -181,13 +188,9 @@ botaoStop.addEventListener("click", () => {
 
     clearInterval(intervalo);
 
-    botaoStop.disabled = true;
+    bloquearCampos();
 
-    camposRespostas.querySelectorAll("input").forEach(campo => {
-        campo.disabled = true;
-    });
-
-    mostrarMensagem("STOP solicitado! Aguarde os outros jogadores.");
+    mostrarMensagem("STOP solicitado! Encerrando rodada...");
 
     socket.emit(
         "parar_rodada",
@@ -207,10 +210,22 @@ socket.on("connect", () => {
 
 socket.on("estado_partida", (dados) => {
     mostrarRodada(dados);
+
+    if (dados.tempo <= 0) {
+        encerrarLocalmente("Rodada encerrada! Aguardando resultado...");
+    }
 });
 
 socket.on("rodada_iniciada", (dados) => {
     mostrarRodada(dados);
+});
+
+socket.on("rodada_encerrada", (dados) => {
+    encerrarLocalmente(
+        dados.motivo === "stop"
+            ? "STOP! A rodada foi encerrada por um jogador."
+            : "O tempo acabou! Rodada encerrada."
+    );
 });
 
 socket.on("erro", (dados) => {
