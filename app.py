@@ -20,8 +20,12 @@ salas = {}
 @app.route("/")
 def index():
     return render_template("index.html")
+@app.route("/sala/<codigo>")
+def pagina_sala(codigo):
+    if codigo not in salas:
+        return "Sala não encontrada ou encerrada.", 404
 
-
+    return render_template("sala.html", codigo=codigo)
 def gerar_codigo():
     caracteres = string.ascii_uppercase + string.digits
     while True:
