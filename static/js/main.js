@@ -21,10 +21,14 @@ function validarNome(nome) {
         return false;
     }
 
+    if (nome.trim().length > 20) {
+        mostrarMensagem("Seu nome deve ter até 20 caracteres.");
+        return false;
+    }
+
     return true;
 }
 
-// Criar sala
 botaoCriar.addEventListener("click", () => {
     const nome = nomeCriar.value.trim();
 
@@ -33,12 +37,9 @@ botaoCriar.addEventListener("click", () => {
     botaoCriar.disabled = true;
     mostrarMensagem("Criando sua sala...", false);
 
-    socket.emit("criar_sala", {
-        nome: nome
-    });
+    socket.emit("criar_sala", { nome });
 });
 
-// Entrar em uma sala
 botaoEntrar.addEventListener("click", () => {
     const nome = nomeEntrar.value.trim();
     const codigo = codigoSala.value.trim().toUpperCase();
@@ -54,34 +55,27 @@ botaoEntrar.addEventListener("click", () => {
     mostrarMensagem("Procurando sala...", false);
 
     socket.emit("entrar_sala", {
-        nome: nome,
-        codigo: codigo
+        nome,
+        codigo
     });
 });
 
-// Sala criada com sucesso
 socket.on("sala_criada", (dados) => {
     sessionStorage.setItem("codigoSala", dados.codigo);
+    sessionStorage.setItem("tokenJogador", dados.token);
     sessionStorage.setItem("nomeJogador", nomeCriar.value.trim());
-    sessionStorage.setItem("anfitriao", "true");
-
-    mostrarMensagem("Sala criada! Código: " + dados.codigo, false);
 
     window.location.href = "/sala/" + dados.codigo;
 });
 
-// Entrada realizada com sucesso
 socket.on("entrou_sala", (dados) => {
     sessionStorage.setItem("codigoSala", dados.codigo);
+    sessionStorage.setItem("tokenJogador", dados.token);
     sessionStorage.setItem("nomeJogador", nomeEntrar.value.trim());
-    sessionStorage.setItem("anfitriao", "false");
-
-    mostrarMensagem("Você entrou na sala!", false);
 
     window.location.href = "/sala/" + dados.codigo;
 });
 
-// Erros enviados pelo servidor
 socket.on("erro", (dados) => {
     mostrarMensagem(dados.mensagem);
 
@@ -89,21 +83,13 @@ socket.on("erro", (dados) => {
     botaoEntrar.disabled = false;
 });
 
-// Problemas de conexão
 socket.on("connect_error", () => {
-    mostrarMensagem("Não foi possível conectar ao servidor.");
+    mostrarMensagem("Erro de conexão com o servidor.");
 
     botaoCriar.disabled = false;
     botaoEntrar.disabled = false;
 });
 
-// Reabilitar botões se houver desconexão
-socket.on("disconnect", () => {
-    botaoCriar.disabled = false;
-    botaoEntrar.disabled = false;
-});
-
-// Permitir letras maiúsculas no código
 codigoSala.addEventListener("input", () => {
     codigoSala.value = codigoSala.value.toUpperCase();
 });
