@@ -315,8 +315,19 @@ function mostrarVotacao(dados) {
         const jogador = document.createElement("p");
         jogador.textContent = "Jogador: " + item.jogador;
 
-        const resposta = document.createElement("p");
-        resposta.textContent = "Resposta: " + item.resposta;
+        const resposta = document.createElement("div");
+        resposta.className = "resposta-destaque-votacao";
+
+        const rotuloResposta = document.createElement("span");
+        rotuloResposta.className = "rotulo-resposta-votacao";
+        rotuloResposta.textContent = "RESPOSTA";
+
+        const textoResposta = document.createElement("strong");
+        textoResposta.className = "texto-resposta-votacao";
+        textoResposta.textContent = item.resposta;
+
+        resposta.appendChild(rotuloResposta);
+        resposta.appendChild(textoResposta);
 
         const votos = document.createElement("p");
         votos.id = "votos-" + item.id;
