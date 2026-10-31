@@ -802,6 +802,49 @@ def votar_resposta(dados):
     )
 
 
+@socketio.on("remover_voto_resposta")
+def remover_voto_resposta(dados):
+    codigo, sala, jogador_id = obter_jogador(dados)
+
+    if not sala:
+        emit("erro", {"mensagem": "Jogador ou sala não reconhecidos."})
+        return
+
+    if sala["fase"] != "votacao":
+        emit("erro", {"mensagem": "Não existe uma votação em andamento."})
+        return
+
+    if time.time() >= sala["fim_votacao"]:
+        calcular_pontuacao_rodada(codigo, sala["rodada_atual"])
+        return
+
+    resposta_id = dados.get("resposta_id")
+
+    if resposta_id not in sala["votos"]:
+        emit("erro", {"mensagem": "Resposta não encontrada."})
+        return
+
+    votos = sala["votos"][resposta_id]
+
+    if jogador_id not in votos:
+        emit("erro", {"mensagem": "Você ainda não votou nesta resposta."})
+        return
+
+    votos.remove(jogador_id)
+
+    socketio.emit(
+        "votacao_atualizada",
+        {
+            "resposta_id": resposta_id,
+            "votos": len(votos),
+            "votos_necessarios": (
+                (sala["total_jogadores_votacao"] + 1) // 2
+            )
+        },
+        to=codigo
+    )
+
+
 # ==========================================
 # CALCULAR PONTUAÇÃO APÓS A VOTAÇÃO
 # ==========================================
