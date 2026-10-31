@@ -709,7 +709,7 @@ def finalizar_rodada(codigo, motivo):
             "tempo": TEMPO_VOTACAO,
             "respostas": respostas_publicas,
             "votos_necessarios": (
-                sala["total_jogadores_votacao"] // 2 + 1
+                (sala["total_jogadores_votacao"] + 1) // 2
             )
         },
         to=codigo
@@ -795,7 +795,7 @@ def votar_resposta(dados):
             "resposta_id": resposta_id,
             "votos": total_votos,
             "votos_necessarios": (
-                sala["total_jogadores_votacao"] // 2 + 1
+                (sala["total_jogadores_votacao"] + 1) // 2
             )
         },
         to=codigo
@@ -825,7 +825,7 @@ def calcular_pontuacao_rodada(codigo, numero_rodada):
     sala["fim_votacao"] = None
 
     votos_necessarios = (
-        sala["total_jogadores_votacao"] // 2 + 1
+        (sala["total_jogadores_votacao"] + 1) // 2
     )
 
     pontuacao_rodada = {
@@ -1016,7 +1016,7 @@ def carregar_estado_partida(codigo, sala, jogador_id):
                 ),
                 "respostas": respostas_publicas,
                 "votos_necessarios": (
-                    sala["total_jogadores_votacao"] // 2 + 1
+                    (sala["total_jogadores_votacao"] + 1) // 2
                 )
             }
         )
