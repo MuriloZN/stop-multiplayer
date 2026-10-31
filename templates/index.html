@@ -1,101 +1,47 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0b0b12">
     <title>STOP! | Multiplayer</title>
-
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
     <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
 </head>
-
 <body>
-
     <main class="container">
-
         <header class="header">
             <div class="logo">ST<span>O</span>P!</div>
-            <div class="status">
-                <span class="status-dot"></span>
-                MULTIPLAYER ONLINE
-            </div>
+            <div class="status"><span class="status-dot"></span>MULTIPLAYER ONLINE</div>
+            <button class="theme-toggle" type="button"></button>
         </header>
-
         <section class="hero">
             <div class="tag">O CLÁSSICO, AGORA ONLINE</div>
-
-            <h1>Teste seus conhecimentos.<br>
-                <span>Seja o mais rápido!</span>
-            </h1>
-
-            <p>
-                Reúna seus amigos, escolha os temas e descubra
-                quem consegue pensar mais rápido.
-            </p>
+            <h1>Teste seus conhecimentos.<br><span>Seja o mais rápido!</span></h1>
+            <p>Reúna seus amigos, escolha os temas e descubra quem consegue pensar mais rápido.</p>
         </section>
-
         <section class="menu">
-
             <div class="card">
                 <div class="card-icon">✦</div>
-
                 <h2>Criar sala</h2>
                 <p>Seja o anfitrião e configure sua partida.</p>
-
-                <input
-                    type="text"
-                    id="nome-criar"
-                    placeholder="Seu nome"
-                    maxlength="20"
-                >
-
-                <button id="btn-criar" class="btn-primary">
-                    CRIAR PARTIDA
-                </button>
+                <input type="text" id="nome-criar" placeholder="Seu nome" maxlength="20" autocomplete="name">
+                <button id="btn-criar" class="btn-primary">CRIAR PARTIDA</button>
             </div>
-
-            <div class="divider">
-                <span>OU</span>
-            </div>
-
+            <div class="divider"><span>OU</span></div>
             <div class="card">
                 <div class="card-icon">↗</div>
-
                 <h2>Entrar na sala</h2>
                 <p>Já tem um código? Entre na partida dos seus amigos.</p>
-
-                <input
-                    type="text"
-                    id="nome-entrar"
-                    placeholder="Seu nome"
-                    maxlength="20"
-                >
-
-                <input
-                    type="text"
-                    id="codigo-sala"
-                    placeholder="CÓDIGO DA SALA"
-                    maxlength="6"
-                >
-
-                <button id="btn-entrar" class="btn-secondary">
-                    ENTRAR NA PARTIDA
-                </button>
+                <input type="text" id="nome-entrar" placeholder="Seu nome" maxlength="20" autocomplete="name">
+                <input type="text" id="codigo-sala" placeholder="CÓDIGO DA SALA" maxlength="6" autocomplete="off">
+                <button id="btn-entrar" class="btn-secondary">ENTRAR NA PARTIDA</button>
             </div>
-
         </section>
-
-        <div id="mensagem" class="mensagem"></div>
-
-        <footer>
-            <p>STOP! MULTIPLAYER © 2026</p>
-            <p>Feito para jogar com os amigos.</p>
-        </footer>
-
+        <div id="mensagem" class="mensagem" role="status" aria-live="polite"></div>
+        <footer><p>STOP! MULTIPLAYER © 2026</p><p>Feito para jogar com os amigos.</p></footer>
     </main>
-
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-
 </body>
 </html>
