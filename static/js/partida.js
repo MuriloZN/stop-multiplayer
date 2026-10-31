@@ -35,6 +35,7 @@ let faseAtual = "aguardando";
 
 let respostasVotacao = {};
 let respostasVotadas = new Set();
+let controlesVotacao = {};
 
 if (!codigo || !token) {
     window.location.href = "/";
@@ -334,23 +335,38 @@ function mostrarVotacao(dados) {
         votos.textContent =
             `${item.votos} / ${dados.votos_necessarios} votos para invalidar`;
 
+        const acoesVoto = document.createElement("div");
+        acoesVoto.className = "acoes-votacao";
+
         const botao = document.createElement("button");
         botao.type = "button";
         botao.className = "btn-secondary";
         botao.textContent = "Votar para invalidar";
 
+        const botaoRemover = document.createElement("button");
+        botaoRemover.type = "button";
+        botaoRemover.className = "btn-remover-voto";
+        botaoRemover.textContent = "Remover voto";
+        botaoRemover.hidden = true;
+
         botao.addEventListener("click", () => {
             if (respostasVotadas.has(item.id)) return;
-
             respostasVotadas.add(item.id);
             botao.disabled = true;
-            botao.textContent = "Voto enviado";
-
-            socket.emit(
-                "votar_resposta",
-                enviarDados({ resposta_id: item.id })
-            );
+            botaoRemover.hidden = false;
+            socket.emit("votar_resposta", enviarDados({ resposta_id: item.id }));
         });
+
+        botaoRemover.addEventListener("click", () => {
+            if (!respostasVotadas.has(item.id)) return;
+            respostasVotadas.delete(item.id);
+            botaoRemover.disabled = true;
+            socket.emit("remover_voto_resposta", enviarDados({ resposta_id: item.id }));
+        });
+
+        controlesVotacao[item.id] = { card, botao, botaoRemover };
+        acoesVoto.appendChild(botao);
+        acoesVoto.appendChild(botaoRemover);
 
         if (!item.valida_letra) {
             const aviso = document.createElement("p");
@@ -362,7 +378,7 @@ function mostrarVotacao(dados) {
         card.appendChild(jogador);
         card.appendChild(resposta);
         card.appendChild(votos);
-        card.appendChild(botao);
+        card.appendChild(acoesVoto);
 
         gruposPorTema.get(item.tema).appendChild(card);
     });
@@ -403,13 +419,29 @@ function iniciarCronometroVotacao(tempo) {
 // ==========================================
 
 socket.on("votacao_atualizada", dados => {
-    const contador = document.getElementById(
-        "votos-" + dados.resposta_id
-    );
+    const contador = document.getElementById("votos-" + dados.resposta_id);
+    const controles = controlesVotacao[dados.resposta_id];
 
     if (contador) {
         contador.textContent =
             `${dados.votos} / ${dados.votos_necessarios} votos para invalidar`;
+    }
+
+    if (controles) {
+        controles.card.classList.toggle(
+            "votacao-em-disputa",
+            dados.votos > 0 && dados.votos < dados.votos_necessarios
+        );
+        controles.card.classList.toggle(
+            "votacao-invalidada",
+            dados.votos >= dados.votos_necessarios
+        );
+
+        const jaVotou = respostasVotadas.has(dados.resposta_id);
+        controles.botao.disabled = jaVotou;
+        controles.botao.textContent = jaVotou ? "Voto enviado" : "Votar para invalidar";
+        controles.botaoRemover.hidden = !jaVotou;
+        controles.botaoRemover.disabled = false;
     }
 });
 
