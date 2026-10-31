@@ -1,107 +1,65 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+    <meta name="theme-color" content="#0b0b12">
     <title>Sala - STOP!</title>
-
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
 </head>
-
 <body>
-
     <main class="container">
-
         <header class="header">
-            <h1 class="logo">STOP!</h1>
+            <h1 class="logo">ST<span>O</span>P!</h1>
             <p>Prepare-se para jogar!</p>
+            <button class="theme-toggle" type="button"></button>
         </header>
-
         <section class="lobby-card">
-
             <div class="room-header">
                 <h2>Sala de espera</h2>
-
                 <div>
                     <span>Código:</span>
                     <strong id="codigo-sala">{{ codigo }}</strong>
-                    <button id="btn-copiar" type="button">
-                        COPIAR CÓDIGO
-                    </button>
+                    <button id="btn-copiar" type="button">COPIAR CÓDIGO</button>
                 </div>
             </div>
-
-            <h3>Jogadores <span id="contador-jogadores">0 jogadores</span></h3>
-
-            <div id="lista-jogadores" class="players-list">
-                Aguardando jogadores...
+            <div class="lobby-divider"></div>
+            <div class="players-header">
+                <h2>Jogadores</h2>
+                <span id="contador-jogadores" class="player-count">0 jogadores</span>
             </div>
-
-            <p class="waiting-message">
-                Compartilhe o código da sala com seus amigos!
-            </p>
-
+            <div id="lista-jogadores" class="players-list"><p class="empty-message">Aguardando jogadores...</p></div>
+            <p class="waiting-message">Compartilhe o código da sala com seus amigos!</p>
             <hr>
-
             <section class="configuracao">
-
                 <h2>Temas da partida</h2>
-
                 <p>Todos os jogadores podem sugerir temas. Máximo de 10.</p>
-
                 <div class="adicionar-tema">
-                    <input
-                        type="text"
-                        id="tema-input"
-                        maxlength="30"
-                        placeholder="Ex.: Nome, Animal, Cidade..."
-                    >
-
-                    <button id="btn-adicionar-tema" type="button">
-                        ADICIONAR
-                    </button>
+                    <input type="text" id="tema-input" maxlength="30" placeholder="Ex.: Nome, Animal, Cidade...">
+                    <button id="btn-adicionar-tema" type="button">ADICIONAR</button>
                 </div>
-
-                <div id="lista-temas">
-                    <p>Nenhum tema adicionado.</p>
-                </div>
-
+                <div id="lista-temas"><p>Nenhum tema adicionado.</p></div>
                 <hr>
-
                 <h2>Configurações da partida</h2>
-
                 <label for="tempo-rodada">Tempo por rodada:</label>
-
                 <select id="tempo-rodada">
                     <option value="60">1 minuto</option>
                     <option value="90">1 minuto e 30 segundos</option>
                     <option value="120">2 minutos</option>
                 </select>
-
                 <label for="numero-rodadas">Quantidade de rodadas:</label>
-
                 <select id="numero-rodadas">
                     <option value="5">5 rodadas</option>
                     <option value="10" selected>10 rodadas</option>
                     <option value="15">15 rodadas</option>
                 </select>
-
             </section>
-
-            <button id="btn-iniciar" type="button" disabled>
-                INICIAR PARTIDA
-            </button>
-
-            <p id="mensagem-sala" class="room-message"></p>
-
+            <button id="btn-iniciar" type="button" disabled>INICIAR PARTIDA</button>
+            <p id="mensagem-sala" class="room-message" role="status" aria-live="polite"></p>
         </section>
-
     </main>
-
     <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
     <script src="{{ url_for('static', filename='js/sala.js') }}"></script>
-
 </body>
 </html>
