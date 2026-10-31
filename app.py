@@ -1046,6 +1046,12 @@ def carregar_partida(dados):
         emit("erro", {"mensagem": "A partida não está em andamento."})
         return
 
+    # A tela da partida abre uma nova conexão Socket.IO após sair do lobby.
+    # Reassociamos o socket à sala para que ele receba os eventos em broadcast
+    # (fase_votacao, resultado_rodada, rodada_iniciada etc.).
+    join_room(codigo)
+    sala["jogadores"][jogador_id]["sid"] = request.sid
+
     carregar_estado_partida(codigo, sala, jogador_id)
 
 
