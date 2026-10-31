@@ -286,14 +286,31 @@ function mostrarVotacao(dados) {
 
     listaRespostasVotacao.innerHTML = "";
 
+    // Agrupa as respostas em uma coluna/seção para cada tema.
+    const gruposPorTema = new Map();
+
     dados.respostas.forEach(item => {
         respostasVotacao[item.id] = item;
 
-        const card = document.createElement("div");
-        card.className = "campo-resposta";
+        if (!gruposPorTema.has(item.tema)) {
+            const grupo = document.createElement("section");
+            grupo.className = "grupo-tema-votacao";
 
-        const titulo = document.createElement("strong");
-        titulo.textContent = item.tema;
+            const tituloTema = document.createElement("h3");
+            tituloTema.className = "titulo-tema-votacao";
+            tituloTema.textContent = item.tema;
+
+            const listaTema = document.createElement("div");
+            listaTema.className = "respostas-do-tema";
+
+            grupo.appendChild(tituloTema);
+            grupo.appendChild(listaTema);
+            listaRespostasVotacao.appendChild(grupo);
+            gruposPorTema.set(item.tema, listaTema);
+        }
+
+        const card = document.createElement("article");
+        card.className = "campo-resposta resposta-votacao";
 
         const jogador = document.createElement("p");
         jogador.textContent = "Jogador: " + item.jogador;
@@ -312,9 +329,7 @@ function mostrarVotacao(dados) {
         botao.textContent = "Votar para invalidar";
 
         botao.addEventListener("click", () => {
-            if (respostasVotadas.has(item.id)) {
-                return;
-            }
+            if (respostasVotadas.has(item.id)) return;
 
             respostasVotadas.add(item.id);
             botao.disabled = true;
@@ -322,28 +337,23 @@ function mostrarVotacao(dados) {
 
             socket.emit(
                 "votar_resposta",
-                enviarDados({
-                    resposta_id: item.id
-                })
+                enviarDados({ resposta_id: item.id })
             );
         });
 
         if (!item.valida_letra) {
             const aviso = document.createElement("p");
-            aviso.textContent =
-                "Esta resposta não começa com a letra sorteada.";
-            aviso.style.color = "#f87171";
-
+            aviso.className = "aviso-resposta-invalida";
+            aviso.textContent = "Não começa com a letra sorteada.";
             card.appendChild(aviso);
         }
 
-        card.appendChild(titulo);
         card.appendChild(jogador);
         card.appendChild(resposta);
         card.appendChild(votos);
         card.appendChild(botao);
 
-        listaRespostasVotacao.appendChild(card);
+        gruposPorTema.get(item.tema).appendChild(card);
     });
 
     mostrarMensagem("Vote nas respostas que considerar incorretas.");

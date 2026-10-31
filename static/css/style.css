@@ -621,3 +621,43 @@ footer { color: var(--muted); }
     .adicionar-tema { grid-template-columns: 1fr; }
     .adicionar-tema button { width: 100%; }
 }
+
+
+/* Votação organizada por tema */
+#lista-respostas-votacao {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr));
+    align-items: start;
+    gap: 16px;
+}
+.grupo-tema-votacao {
+    min-width: 0;
+    padding: 16px;
+    border: 1px solid var(--border-strong);
+    border-radius: 14px;
+    background: var(--surface-raised);
+}
+.titulo-tema-votacao {
+    margin: 0 0 13px;
+    color: var(--primary-light);
+    font-size: 17px;
+    text-transform: capitalize;
+}
+.respostas-do-tema {
+    display: grid;
+    gap: 10px;
+}
+.resposta-votacao {
+    padding: 13px;
+    background: var(--surface-input);
+}
+.resposta-votacao p { margin: 6px 0; }
+.resposta-votacao button {
+    width: 100%;
+    margin-top: 8px;
+    min-height: 42px;
+}
+.aviso-resposta-invalida {
+    color: var(--danger) !important;
+    font-size: 12px;
+    font-weight: 600;
+}
