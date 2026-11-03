@@ -10,7 +10,7 @@
     <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
 </head>
 <body>
-    <main class="wrap">
+    <main class="wrap" id="app-root" data-room-code="{{ room_code|default('') }}">
         <header class="app-header">
             <a href="/" class="brand">Desk<span>Gaming</span></a>
             <div class="header-actions">
@@ -60,6 +60,12 @@
                         </select>
                     </label>
                     <button id="start" type="button">Iniciar partida</button>
+                </div>
+                <div id="guest-settings" class="subpanel guest-settings" hidden>
+                    <h3>Configurações da partida</h3>
+                    <p>Rodadas: <strong id="guest-rounds">5</strong></p>
+                    <p>Tema: <strong id="guest-theme">Animais</strong></p>
+                    <p class="muted-message">Aguardando o anfitrião iniciar...</p>
                 </div>
             </div>
             <p id="lobby-message" class="muted-message"></p>

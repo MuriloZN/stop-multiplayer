@@ -1105,6 +1105,7 @@ def carregar_partida(dados):
 @socketio.on("disconnect")
 def desconectar():
     jogador_sid = request.sid
+    disconnect_drawtic(jogador_sid, socketio)
 
     for codigo, sala in list(salas.items()):
         for jogador in sala["jogadores"].values():
@@ -1116,7 +1117,7 @@ def desconectar():
 
 
 
-from drawtic_game import register_drawtic
+from drawtic_game import register_drawtic, disconnect_drawtic
 register_drawtic(app, socketio)
 
 # ==========================================

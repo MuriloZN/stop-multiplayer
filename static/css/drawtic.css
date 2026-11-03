@@ -150,3 +150,9 @@ canvas { display:block; width:100%; height:auto; aspect-ratio:1000/650; border-r
 @media (prefers-reduced-motion:reduce) {
     *,*::before,*::after { scroll-behavior:auto!important; transition:none!important; }
 }
+.lobby-grid { grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr)); align-items:stretch; }
+#guest-settings p { margin:8px 0; }
+#guest-settings strong { color:var(--primary-light); }
+#players:empty::after { content:"Aguardando jogadores entrarem na sala..."; display:block; margin-left:-22px; color:var(--muted); font-size:13px; }
+#players li { padding:5px 0; border-bottom:1px solid var(--border); }
+#start { width:100%; margin-top:8px; }

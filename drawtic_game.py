@@ -53,7 +53,7 @@ def begin_turn(socketio, code):
         room["round"] += 1
         if room["round"] > room["rounds"]:
             room["state"] = "finished"
-            socketio.emit("drawtic_finished", {"ranking": ranking(room)}, to=code)
+            socketio.emit("drawtic_finished", {"ranking": ranking(room)}, to="drawtic_" + code)
             return
         room["turn_index"] = 0
     drawer_id = room["order"][room["turn_index"]]
@@ -65,9 +65,11 @@ def begin_turn(socketio, code):
     socketio.emit("drawtic_turn", {
         "round": room["round"], "rounds": room["rounds"],
         "drawer": room["players"][drawer_id]["nome"],
-        "drawer_id": drawer_id, "duration": DRAW_TIME,
-        "word": room["word"] if room["players"][drawer_id]["sid"] else None
-    }, to=code)
+        "drawer_id": drawer_id, "duration": DRAW_TIME
+    }, to="drawtic_" + code)
+    drawer_sid = room["players"][drawer_id]["sid"]
+    if drawer_sid:
+        socketio.emit("drawtic_private_word", {"word": room["word"]}, to=drawer_sid)
     socketio.start_background_task(turn_clock, socketio, code, room["round"], room["turn_index"])
 
 
@@ -80,7 +82,7 @@ def finish_turn(socketio, code, reason="finished"):
         "word": room["word"], "reason": reason,
         "drawer": room["players"][room["drawer"]]["nome"],
         "ranking": ranking(room)
-    }, to=code)
+    }, to="drawtic_" + code)
     socketio.start_background_task(next_turn, socketio, code, room["round"], room["turn_index"])
 
 
@@ -100,7 +102,7 @@ def turn_clock(socketio, code, round_number, turn_index):
         if not room or room["state"] != "drawing" or room["round"] != round_number or room["turn_index"] != turn_index:
             return
         remaining = max(0, int(room["turn_end"] - time.time()))
-        socketio.emit("drawtic_timer", {"remaining": remaining}, to=code)
+        socketio.emit("drawtic_timer", {"remaining": remaining}, to="drawtic_" + code)
         if remaining <= 0:
             finish_turn(socketio, code, "time")
             return
@@ -147,6 +149,8 @@ def register_drawtic(app, socketio):
         room["players"][player_id] = {"nome": name, "pontos": 0, "sid": request.sid}
         join_room("drawtic_" + code)
         emit("drawtic_joined", {"code": code, "token": player_id, "name": name, "host": False})
+        emit("drawtic_lobby", {"players": public_players(room), "host": False,
+             "rounds": room["rounds"], "theme": room["theme"], "state": room["state"]})
         broadcast_players(socketio, "drawtic_" + code)
 
     @socketio.on("drawtic_reconnect")
@@ -164,8 +168,9 @@ def register_drawtic(app, socketio):
         if room["state"] == "drawing":
             emit("drawtic_turn", {"round": room["round"], "rounds": room["rounds"],
                 "drawer": room["players"][room["drawer"]]["nome"], "drawer_id": room["drawer"],
-                "duration": max(0, int(room["turn_end"] - time.time())),
-                "word": room["word"] if token == room["drawer"] else None})
+                "duration": max(0, int(room["turn_end"] - time.time()))})
+            if token == room["drawer"]:
+                emit("drawtic_private_word", {"word": room["word"]})
         elif room["state"] == "revealing":
             emit("drawtic_reveal", {"word": room["word"], "drawer": room["players"][room["drawer"]]["nome"],
                 "ranking": ranking(room)})
@@ -181,7 +186,7 @@ def register_drawtic(app, socketio):
             room["rounds"] = data["rounds"]
         if data.get("theme") in THEMES:
             room["theme"] = data["theme"]
-        socketio.emit("drawtic_lobby", {"players": public_players(room), "host": True,
+        socketio.emit("drawtic_lobby", {"players": public_players(room),
             "rounds": room["rounds"], "theme": room["theme"], "state": room["state"]}, to="drawtic_" + data["code"])
 
     @socketio.on("drawtic_start")
