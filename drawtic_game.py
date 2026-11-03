@@ -256,7 +256,8 @@ def register_drawtic(app, socketio):
         if room and room["state"] == "drawing" and data.get("token") == room["drawer"]:
             finish_turn(socketio, data["code"], "drawer_finished")
 
-\ndef disconnect_drawtic(sid, socketio):
+
+def disconnect_drawtic(sid, socketio):
     for code, room in list(rooms.items()):
         for player_id, player in room["players"].items():
             if player["sid"] != sid:
