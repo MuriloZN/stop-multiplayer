@@ -14,7 +14,7 @@ $("join").onclick=()=>{name=$("player-name").value.trim();code=$("room-code").va
 $("start").onclick=()=>socket.emit("drawtic_start",{...credentials()});
 $("rounds").onchange=$("theme").onchange=()=>socket.emit("drawtic_config",{...credentials(),rounds:Number($("rounds").value),theme:$("theme").value});
 socket.on("drawtic_created",d=>{code=d.code;token=d.token;name=d.name;save();history.replaceState({},"","/drawtic/sala/"+code);enterLobby({host:true,players:[{nome:name,pontos:0}]})});
-socket.on("drawtic_joined",d=>{code=d.code;token=d.token;name=d.name;save();host=false;history.replaceState({},"","/drawtic/sala/"+code);show("lobby");$("code-label").textContent=code;$("settings").hidden=true});
+socket.on("drawtic_joined",d=>{code=d.code;token=d.token;name=d.name;save();host=false;history.replaceState({},"","/drawtic/sala/"+code);show("lobby");$("code-label").textContent=code;$("host-settings").hidden=true});
 socket.on("drawtic_lobby",d=>enterLobby(d));
 socket.on("drawtic_players",d=>players(d.players));
 socket.on("drawtic_error",d=>err(d.message));
