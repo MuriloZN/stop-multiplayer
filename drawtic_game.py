@@ -256,13 +256,19 @@ def register_drawtic(app, socketio):
         if room and room["state"] == "drawing" and data.get("token") == room["drawer"]:
             finish_turn(socketio, data["code"], "drawer_finished")
 
-def disconnect_drawtic(sid,io):
- for code,r in list(rooms.items()):
-  for pid,p in r["players"].items():
-   if p["sid"]==sid:
-    p["sid"]=None
-    io.emit("drawtic_players",{"players":players(r)},to="drawtic_"+code)
-    if r["phase"]=="drawing":
-     if pid==r["drawer"]:finish(io,code,"drawer_disconnected")
-     elif all(x in r["guessed"] or not r["players"][x]["sid"] for x in r["players"] if x!=r["drawer"]):finish(io,code,"all_guessed")
-    return
+\ndef disconnect_drawtic(sid, socketio):
+    for code, room in list(rooms.items()):
+        for player_id, player in room["players"].items():
+            if player["sid"] != sid:
+                continue
+            player["sid"] = None
+            socketio.emit("drawtic_players", {"players": public_players(room)}, to="drawtic_" + code)
+            if room["state"] == "drawing":
+                if player_id == room["drawer"]:
+                    finish_turn(socketio, code, "drawer_disconnected")
+                else:
+                    eligible = [pid for pid, item in room["players"].items()
+                                if pid != room["drawer"] and item["sid"]]
+                    if eligible and all(pid in room["guessed"] for pid in eligible):
+                        finish_turn(socketio, code, "all_guessed")
+            return
