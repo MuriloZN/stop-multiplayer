@@ -1,2 +1,1 @@
-# stop-multiplayer
-Jogo STOP multiplayer online
+# DeskGaming\n\nPlataforma multiplayer em Flask + Flask-SocketIO com dois jogos independentes.\n\n- **STOP!**: o fluxo original de salas, rodadas, votação e pontuação foi mantido.\n- **Drawtic**: acesse `/drawtic`, crie uma sala e compartilhe o código com seus amigos. O jogo possui tema escolhido pelo anfitrião, 3/5/10 rodadas, turnos de 75 segundos, desenho sincronizado, chat de palpites e pontuação por velocidade.\n\n## Executar localmente\n\n`pip install -r requirements.txt` e depois `python app.py`.\n
