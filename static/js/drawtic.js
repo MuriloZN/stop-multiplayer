@@ -8,7 +8,7 @@ function save(d){sessionStorage.setItem("drawticCode",code);sessionStorage.setIt
 function credentials(){return {code,token}}
 function players(list){$("players").innerHTML="";list.forEach(p=>{const li=document.createElement("li");li.textContent=p.nome+" — "+p.pontos+" pts";$("players").append(li)})}
 function scores(list,target="scores"){ $(target).innerHTML="";list.forEach(p=>{const li=document.createElement("li");li.textContent=p.nome+" — "+p.pontos+" pts";$(target).append(li)})}
-function setHostControls(){document.querySelectorAll(".host-only").forEach(el=>el.hidden=!host);$("end-game").hidden=!host;$("host-end-game").hidden=!host||!drawer}
+function setHostControls(){document.querySelectorAll(".host-only").forEach(el=>el.hidden=!host);$("end-game").hidden=!host;$("host-end-game").hidden=!host}
 function enterLobby(data){if(typeof data.host==="boolean")host=data.host;setHostControls();show("lobby");$("code-label").textContent=code;$("host-settings").hidden=!host;$("guest-settings").hidden=host;players(data.players||[]);if(data.rounds){$("rounds").value=data.rounds;$("guest-rounds").textContent=data.rounds}if(data.theme){$("theme").value=data.theme;$("guest-theme").textContent=data.theme}}
 $("create").onclick=()=>{name=$("player-name").value.trim();if(name)socket.emit("drawtic_create",{name});else err("Digite seu nome.")};
 $("join").onclick=()=>{name=$("player-name").value.trim();code=$("room-code").value.trim().toUpperCase();if(name&&code)socket.emit("drawtic_join",{name,code});else err("Informe nome e código.")};
