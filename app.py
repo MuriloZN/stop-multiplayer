@@ -1115,6 +1115,10 @@ def desconectar():
                 return
 
 
+
+from drawtic_game import register_drawtic
+register_drawtic(app, socketio)
+
 # ==========================================
 # EXECUTAR SERVIDOR
 # ==========================================

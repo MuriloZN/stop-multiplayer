@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Drawtic | DeskGaming</title><link rel="stylesheet" href="{{ url_for('static', filename='css/drawtic.css') }}">
+<script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script></head>
+<body><main class="wrap"><header><a href="/" class="brand">Desk<span>Gaming</span></a><span class="pill">DRAWtic</span></header>
+<section id="entry" class="panel"><h1>Desenhe. Adivinhe. Vença.</h1><p>O desenho aparece para todos. Quem acertar primeiro ganha mais pontos!</p>
+<div class="entry-grid"><label>Seu nome<input id="player-name" maxlength="20" placeholder="Como devemos te chamar?"></label>
+<div id="join-fields"><label>Código da sala<input id="room-code" maxlength="6" placeholder="ABC123"></label><button id="join" class="secondary">Entrar na sala</button></div>
+<button id="create">Criar uma sala</button></div></section>
+<section id="lobby" class="panel" hidden><h1>Sala <strong id="code-label"></strong></h1><p>Compartilhe o código com seus amigos.</p>
+<div class="lobby-grid"><div><h3>Jogadores</h3><ul id="players"></ul></div><div id="host-settings"><h3>Configurações</h3><label>Rodadas<select id="rounds"><option>3</option><option selected>5</option><option>10</option></select></label>
+<label>Tema<select id="theme">{% for theme in ["Animais","Comidas e frutas","Objetos","Transportes","Natureza","Profissões","Lugares","Esportes"] %}<option>{{ theme }}</option>{% endfor %}</select></label><button id="start">Iniciar partida</button></div></div><p id="lobby-message"></p></section>
+<section id="game" hidden><div class="game-head"><div><b id="round-label">Rodada 1</b><span id="turn-label"></span></div><div class="timer" id="timer">75</div><div class="word" id="word"></div></div>
+<div class="game-grid"><div class="board panel"><div class="tools"><label>Cor<input id="color" type="color" value="#171717"></label><label>Pincel<input id="size" type="range" min="2" max="24" value="5"></label><button id="eraser" class="secondary">Borracha</button><button id="clear" class="secondary">Limpar</button><button id="finish" class="secondary">Finalizar desenho</button></div><canvas id="canvas" width="1000" height="650"></canvas></div>
+<aside class="panel side"><h3>Palpites e conversa</h3><div id="chat"></div><form id="chat-form"><input id="guess" maxlength="100" placeholder="Digite seu palpite..." autocomplete="off"><button>Enviar</button></form><h3>Placar</h3><ol id="scores"></ol></aside></div></section>
+<section id="reveal" class="panel" hidden><h2>Palavra: <strong id="revealed-word"></strong></h2><p id="reveal-message">Próximo desenho em instantes...</p><ol id="reveal-scores"></ol></section>
+<section id="finished" class="panel" hidden><h1>Fim de jogo!</h1><ol id="final-ranking"></ol><a href="/drawtic">Nova partida</a></section><p id="error" role="status"></p></main><script src="{{ url_for('static', filename='js/drawtic.js') }}"></script></body></html>

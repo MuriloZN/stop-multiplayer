@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#0b0b12">
-    <title>STOP! | Multiplayer</title>
+    <title>DeskGaming | Jogos multiplayer</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
     <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
@@ -12,19 +12,19 @@
 <body>
     <main class="container">
         <header class="header">
-            <div class="logo">ST<span>O</span>P!</div>
+            <div class="logo">Desk<span>Gaming</span></div>
             <div class="status"><span class="status-dot"></span>MULTIPLAYER ONLINE</div>
             <button class="theme-toggle" type="button"></button>
         </header>
         <section class="hero">
-            <div class="tag">O CLÁSSICO, AGORA ONLINE</div>
-            <h1>Teste seus conhecimentos.<br><span>Seja o mais rápido!</span></h1>
-            <p>Reúna seus amigos, escolha os temas e descubra quem consegue pensar mais rápido.</p>
+            <div class="tag">JOGUE COM SEUS AMIGOS</div>
+            <h1>Diversão multiplayer.<br><span>Do seu jeito.</span></h1>
+            <p>Escolha um jogo, crie uma sala e convide seus amigos para jogar.</p>
         </section>
-        <section class="menu">
+        <section class="menu">\n            <a class="card game-card" href="/drawtic" style="text-decoration:none;color:inherit;grid-column:1/-1;margin-bottom:18px">\n                <div class="card-icon">✎</div><h2>DRAWtic</h2><p>Desenhe uma palavra, desafie seus amigos e tente adivinhar antes de todo mundo.</p><span class="btn-primary" style="display:block;text-align:center;padding:15px;border-radius:9px">JOGAR DRAWtic</span>\n            </a>
             <div class="card">
                 <div class="card-icon">✦</div>
-                <h2>Criar sala</h2>
+                <h2>STOP! — Criar sala</h2>
                 <p>Seja o anfitrião e configure sua partida.</p>
                 <input type="text" id="nome-criar" placeholder="Seu nome" maxlength="20" autocomplete="name">
                 <button id="btn-criar" class="btn-primary">CRIAR PARTIDA</button>
@@ -32,7 +32,7 @@
             <div class="divider"><span>OU</span></div>
             <div class="card">
                 <div class="card-icon">↗</div>
-                <h2>Entrar na sala</h2>
+                <h2>STOP! — Entrar na sala</h2>
                 <p>Já tem um código? Entre na partida dos seus amigos.</p>
                 <input type="text" id="nome-entrar" placeholder="Seu nome" maxlength="20" autocomplete="name">
                 <input type="text" id="codigo-sala" placeholder="CÓDIGO DA SALA" maxlength="6" autocomplete="off">
@@ -40,7 +40,7 @@
             </div>
         </section>
         <div id="mensagem" class="mensagem" role="status" aria-live="polite"></div>
-        <footer><p>STOP! MULTIPLAYER © 2026</p><p>Feito para jogar com os amigos.</p></footer>
+        <footer><p>DESKGAMING © 2026</p><p>Feito para jogar com os amigos.</p></footer>
     </main>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
