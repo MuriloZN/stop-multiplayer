@@ -8,14 +8,14 @@ from flask import render_template, request
 from flask_socketio import emit, join_room
 
 THEMES = {
-    "Animais": ["cachorro", "gato", "elefante", "girafa", "leão", "tartaruga", "borboleta", "pinguim", "cavalo", "macaco", "coelho", "jacaré", "golfinho", "tubarão", "coruja", "abelha", "canguru", "zebra", "raposa", "urso"],
-    "Comidas e frutas": ["pizza", "hambúrguer", "banana", "abacaxi", "morango", "melancia", "sorvete", "bolo", "pipoca", "sushi", "cenoura", "chocolate", "uva", "limão", "panqueca", "cachorro-quente", "maçã", "queijo", "ovo", "brigadeiro"],
-    "Objetos": ["guarda-chuva", "relógio", "cadeira", "óculos", "violão", "lâmpada", "mochila", "tesoura", "chave", "telefone", "escova", "martelo", "livro", "câmera", "ventilador", "controle remoto", "bicicleta", "travesseiro", "caneca", "óculos de sol"],
-    "Transportes": ["avião", "ônibus", "trem", "navio", "helicóptero", "motocicleta", "patinete", "submarino", " foguete", "trator", "ambulância", "metrô", "balão", "caminhão", "skate", "barco", "táxi", "carro de corrida", "teleférico", "carruagem"],
-    "Natureza": ["árvore", "vulcão", "montanha", "arco-íris", "nuvem", "cachoeira", "flor", "sol", "lua", "estrela", "cacto", "cogumelo", "palmeira", "tornado", "floco de neve", "praia", "ilha", "planeta", "raio", "folha"],
-    "Profissões": ["médico", "professor", "bombeiro", "astronauta", "cozinheiro", "dentista", "pintor", "policial", "mecânico", "jardineiro", "piloto", "fotógrafo", "carteiro", "padeiro", "cientista", "músico", "pescador", "veterinário", "construtor", "cabeleireiro"],
-    "Lugares": ["escola", "hospital", "castelo", "estádio", "cinema", "aeroporto", "biblioteca", "restaurante", "museu", "parque", "fazenda", "igreja", "supermercado", "circo", "aquário", "praia", "deserto", "floresta", "shopping", "delegacia"],
-    "Esportes": ["futebol", "basquete", "tênis", "natação", "surfe", "boxe", "skate", "golfe", "vôlei", "ciclismo", "esqui", "ginástica", "beisebol", "boliche", "judô", "corrida", "esgrima", "remo", "arco e flecha", "patinação"]
+    "Animais": ["cachorro","gato","cavalo","vaca","porco","ovelha","galinha","pato","coelho","rato","elefante","girafa","leão","tigre","macaco","zebra","urso","panda","raposa","lobo","jacaré","cobra","tartaruga","sapo","peixe","golfinho","tubarão","baleia","polvo","caranguejo","borboleta","abelha","formiga","aranha","joaninha","pinguim","coruja","águia","papagaio","flamingo","pavão","canguru","camelo","hipopótamo","rinoceronte","morcego","esquilo","caracol","carneiro","porquinho-da-índia"],
+    "Comidas e frutas": ["pizza","hambúrguer","cachorro-quente","batata frita","sanduíche","pipoca","sorvete","bolo","brigadeiro","pudim","panqueca","waffle","pão","queijo","ovo","arroz","feijão","macarrão","lasanha","sopa","salada","sushi","taco","coxinha","pastel","pão de queijo","maçã","banana","laranja","uva","morango","melancia","abacaxi","mamão","manga","limão","pera","pêssego","cereja","coco","abacate","cenoura","tomate","milho","brócolis","pepino","berinjela","abóbora","alho","cebola"],
+    "Objetos": ["cadeira","mesa","sofá","cama","travesseiro","cobertor","lâmpada","abajur","relógio","celular","telefone","computador","teclado","mouse","televisão","controle remoto","câmera","óculos","boné","chapéu","sapato","chinelo","meia","mochila","bolsa","carteira","chave","cadeado","guarda-chuva","escova","pente","espelho","toalha","sabonete","caneca","copo","prato","garfo","colher","faca","panela","frigideira","vassoura","rodo","martelo","tesoura","livro","lápis","borracha","violão"],
+    "Transportes": ["carro","ônibus","bicicleta","moto","caminhão","trator","ambulância","carro de polícia","carro de bombeiro","táxi","metrô","trem","trem-bala","avião","helicóptero","foguete","navio","barco","canoa","submarino","lancha","iate","balão","dirigível","patinete","skate","patins","carruagem","charrete","guincho","ônibus escolar","van","caminhão de lixo","caminhão-cegonha","carro de corrida","kart","teleférico","bondinho","balsa","jet ski","trólebus","monotrilho","carrinho de golfe","caminhonete","mototáxi","triciclo","trenó","carroça","metrô de superfície","patinete elétrico"],
+    "Natureza": ["sol","lua","estrela","nuvem","chuva","arco-íris","raio","trovão","vento","tornado","furacão","neve","floco de neve","gelo","vulcão","montanha","colina","vale","cachoeira","rio","lago","mar","onda","praia","ilha","deserto","floresta","árvore","palmeira","cacto","flor","rosa","girassol","tulipa","folha","grama","cogumelo","pedra","rocha","caverna","planeta","Terra","cometa","fogueira","ninho","colmeia","concha","coral","pegada","fonte"],
+    "Profissões": ["médico","enfermeiro","dentista","professor","bombeiro","policial","cozinheiro","padeiro","garçom","motorista","piloto","astronauta","pintor","cantor","músico","ator","fotógrafo","jornalista","carteiro","veterinário","mecânico","pedreiro","eletricista","encanador","jardineiro","agricultor","pescador","cabeleireiro","barbeiro","costureira","faxineiro","zelador","cientista","engenheiro","arquiteto","advogado","juiz","salva-vidas","guarda-florestal","entregador","pipoqueiro","mágico","palhaço","dançarino","jogador de futebol","árbitro","florista","professor de dança","maquiador","ator de teatro"],
+    "Lugares": ["casa","escola","hospital","consultório","farmácia","supermercado","padaria","restaurante","lanchonete","sorveteria","shopping","cinema","teatro","museu","biblioteca","parque","zoológico","aquário","circo","estádio","academia","piscina","praia","fazenda","sítio","floresta","deserto","montanha","caverna","castelo","igreja","templo","delegacia","quartel","corpo de bombeiros","aeroporto","rodoviária","estação de trem","porto","posto de gasolina","oficina","salão de beleza","hotel","camping","ponte","praça","mercado","banco","correio","prefeitura"],
+    "Esportes": ["futebol","basquete","vôlei","tênis","tênis de mesa","natação","surfe","skate","patinação","corrida","maratona","ciclismo","boxe","judô","karatê","taekwondo","luta livre","ginástica","balé","golfe","beisebol","softbol","hóquei","rugby","handebol","badminton","esgrima","arco e flecha","remo","canoagem","vela","mergulho","salto ornamental","polo aquático","boliche","sinuca","xadrez","damas","capoeira","futsal","futebol americano","esqui","snowboard","escalada","triatlo","hipismo","levantamento de peso","cabo de guerra","queimada","peteca"]
 }
 rooms = {}
 DRAW_TIME = 75
@@ -58,7 +58,11 @@ def begin_turn(socketio, code):
         room["turn_index"] = 0
     drawer_id = room["order"][room["turn_index"]]
     room["drawer"] = drawer_id
-    room["word"] = random.choice(room["words"])
+    if not room["words"]:
+        room["state"] = "finished"
+        socketio.emit("drawtic_finished", {"ranking": ranking(room), "reason": "words_exhausted"}, to="drawtic_" + code)
+        return
+    room["word"] = room["words"].pop()
     room["guessed"] = []
     room["turn_end"] = time.time() + DRAW_TIME
     room["state"] = "drawing"
@@ -198,6 +202,10 @@ def register_drawtic(app, socketio):
         if len(room["players"]) < 2:
             emit("drawtic_error", {"message": "São necessários pelo menos dois jogadores."})
             return
+        required_words = len(room["players"]) * room["rounds"]
+        if required_words > len(THEMES[room["theme"]]):
+            emit("drawtic_error", {"message": "Este tema não tem palavras suficientes para esta partida sem repetir. Reduza as rodadas ou a quantidade de jogadores."})
+            return
         room["words"] = list(THEMES[room["theme"]])
         random.shuffle(room["words"])
         room["order"] = list(room["players"].keys())
@@ -206,6 +214,27 @@ def register_drawtic(app, socketio):
         for player in room["players"].values():
             player["pontos"] = 0
         begin_turn(socketio, data["code"])
+
+    @socketio.on("drawtic_end_game")
+    def drawtic_end_game(data):
+        data = data or {}
+        code = data.get("code")
+        room = rooms.get(code)
+        if not room or data.get("token") != room["host"] or room["state"] in ("finished", "closed"):
+            return
+        room["state"] = "finished"
+        socketio.emit("drawtic_finished", {"ranking": ranking(room), "reason": "host_ended"}, to="drawtic_" + code)
+
+    @socketio.on("drawtic_close_room")
+    def drawtic_close_room(data):
+        data = data or {}
+        code = data.get("code")
+        room = rooms.get(code)
+        if not room or data.get("token") != room["host"]:
+            return
+        room["state"] = "closed"
+        socketio.emit("drawtic_room_closed", {"message": "O anfitrião encerrou a sala."}, to="drawtic_" + code)
+        rooms.pop(code, None)
 
     @socketio.on("drawtic_stroke")
     def drawtic_stroke(data):

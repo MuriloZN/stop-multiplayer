@@ -41,6 +41,7 @@
             <div class="section-heading">
                 <div><div class="eyebrow">SALA DE ESPERA</div><h1>Sala <strong id="code-label"></strong></h1></div>
                 <p>Compartilhe o código com seus amigos.</p>
+                <button id="close-room" class="secondary host-only" type="button">Encerrar sala</button>
             </div>
             <div class="lobby-grid">
                 <div class="subpanel">
@@ -60,6 +61,7 @@
                         </select>
                     </label>
                     <button id="start" type="button">Iniciar partida</button>
+                    <button id="end-game" class="secondary" type="button">Encerrar partida</button>
                 </div>
                 <div id="guest-settings" class="subpanel guest-settings" hidden>
                     <h3>Configurações da partida</h3>
@@ -85,6 +87,7 @@
                         <button id="eraser" class="secondary" type="button">Borracha</button>
                         <button id="clear" class="secondary" type="button">Limpar</button>
                         <button id="finish" class="secondary" type="button">Finalizar desenho</button>
+                        <button id="host-end-game" class="secondary host-only" type="button" hidden>Encerrar partida</button>
                     </div>
                     <canvas id="canvas" width="1000" height="650"></canvas>
                 </div>
@@ -112,6 +115,7 @@
             <div class="eyebrow">PARTIDA ENCERRADA</div>
             <h1>Fim de jogo!</h1>
             <ol id="final-ranking" class="score-list"></ol>
+            <button id="close-room-finished" class="secondary host-only" type="button">Encerrar sala</button>
             <a class="new-game-link" href="/drawtic">Nova partida</a>
         </section>
         <p id="error" class="error-message" role="status" aria-live="polite"></p>

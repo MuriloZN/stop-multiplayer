@@ -156,3 +156,8 @@ canvas { display:block; width:100%; height:auto; aspect-ratio:1000/650; border-r
 #players:empty::after { content:"Aguardando jogadores entrarem na sala..."; display:block; margin-left:-22px; color:var(--muted); font-size:13px; }
 #players li { padding:5px 0; border-bottom:1px solid var(--border); }
 #start { width:100%; margin-top:8px; }
+
+.host-only { border-color:var(--danger)!important; color:var(--danger)!important; }
+#close-room { margin-left:auto; }
+#end-game,#host-end-game { border-color:var(--danger); color:var(--danger); }
+#end-game:hover,#host-end-game:hover,#close-room:hover { background:color-mix(in srgb,var(--danger) 12%,var(--surface)); }
