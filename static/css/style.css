@@ -740,3 +740,55 @@ footer { color: var(--muted); }
     font-weight: 800;
 }
 .btn-remover-voto:hover { background: #fde68a; }
+
+
+/* Ajustes globais de consistência e responsividade */
+html { overflow-x: hidden; }
+body { overflow-x: hidden; }
+.container { width: min(1100px, calc(100% - 40px)); }
+.card, .lobby-card { min-width: 0; }
+.card input, .lobby-card input, .lobby-card select { max-width: 100%; }
+.game-card { grid-column: 1 / -1; margin-bottom: 18px; color: inherit; text-decoration: none; }
+.game-card .game-link {
+    display: block; margin-top: 18px; padding: 14px 16px; border-radius: 10px;
+    background: linear-gradient(110deg,var(--primary),color-mix(in srgb,var(--primary) 72%,#b99aff));
+    color: #fff; text-align: center; font-size: 12px; font-weight: 900; letter-spacing: .8px;
+}
+.game-card:hover .game-link { filter: brightness(1.08); }
+#area-respostas, #area-votacao, #area-resultado { min-width: 0; }
+#campos-respostas { grid-template-columns: repeat(auto-fit,minmax(min(100%,260px),1fr)); }
+.campo-resposta { min-width: 0; overflow-wrap: anywhere; }
+#form-respostas input { width:100%; min-height:46px; }
+#ranking-jogadores { min-width:0; }
+#ranking-jogadores .player-item { overflow-wrap:anywhere; }
+@media (max-width: 700px) {
+    .container { width: calc(100% - 28px); }
+    .header { gap:10px; }
+    .header .logo { font-size:25px; }
+    .status { display:none; }
+    .hero { padding:52px 4px 34px; }
+    .hero h1 { letter-spacing:-1.2px; }
+    .menu { grid-template-columns:minmax(0,1fr); }
+    .game-info { grid-template-columns:repeat(3,minmax(0,1fr)); gap:7px; }
+    .game-info > div { padding:11px 8px; text-align:center; }
+    .game-info span { font-size:10px; }
+    .game-info strong { font-size:clamp(18px,5vw,24px); }
+    .room-header h2 { font-size:clamp(25px,8vw,36px); letter-spacing:4px; }
+    .room-header > div { width:100%; }
+    .room-header > div button { flex:1 1 100%; }
+    .players-list { grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr)); }
+    .lobby-card { padding:18px; }
+    .resposta-votacao { padding:12px; }
+    .texto-resposta-votacao { font-size:18px; }
+}
+@media (max-width: 420px) {
+    .container { width:calc(100% - 20px); }
+    .theme-toggle { width:40px; padding:8px; font-size:0; }
+    .theme-toggle-icon { font-size:16px; }
+    .game-info { grid-template-columns:1fr; }
+    .game-info > div { grid-template-columns:1fr auto; text-align:left; }
+    .adicionar-tema { grid-template-columns:minmax(0,1fr); }
+}
+@media (prefers-reduced-motion:reduce) {
+    *,*::before,*::after { transition:none!important; scroll-behavior:auto!important; }
+}
