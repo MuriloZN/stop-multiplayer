@@ -255,3 +255,14 @@ def register_drawtic(app, socketio):
         room = rooms.get(data.get("code"))
         if room and room["state"] == "drawing" and data.get("token") == room["drawer"]:
             finish_turn(socketio, data["code"], "drawer_finished")
+
+def disconnect_drawtic(sid,io):
+ for code,r in list(rooms.items()):
+  for pid,p in r["players"].items():
+   if p["sid"]==sid:
+    p["sid"]=None
+    io.emit("drawtic_players",{"players":players(r)},to="drawtic_"+code)
+    if r["phase"]=="drawing":
+     if pid==r["drawer"]:finish(io,code,"drawer_disconnected")
+     elif all(x in r["guessed"] or not r["players"][x]["sid"] for x in r["players"] if x!=r["drawer"]):finish(io,code,"all_guessed")
+    return
